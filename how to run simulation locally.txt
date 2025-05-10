@@ -1,0 +1,10 @@
+**To run game:**
+
+cd ~
+
+source .venv/bin/activate
+
+cd /home/ubuntu/coin_clash
+
+python __main__.py #(optional seed)
+

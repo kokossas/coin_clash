@@ -1,0 +1,54 @@
+# —————————————————————
+# Paths & Database URL
+scenario_dir: "/home/ubuntu/coin_clash/scenarios"
+database_url: "sqlite:////home/ubuntu/coin_clash/data/coin_clash.db"
+# —————————————————————
+
+
+
+
+
+# Entry fees
+min_fee: 0.5
+default_fee: 1.0
+max_fee: 5.0
+
+# Kill rewards
+kill_award_rate_min: 0.0
+kill_award_rate_default: 0.1
+kill_award_rate_max: 0.5
+
+# Simulated players
+num_players_min: 3
+num_players_default: 4
+num_players_max: 50
+
+# Character purchases per player
+chars_per_player_min: 1
+chars_per_player_max: 3
+
+# Protocol cut tiers
+protocol_cut:
+  "1": 0.10
+  "2": 0.08
+  "3": 0.06
+
+# Event weights
+primary_event_weights:
+  direct_kill: 50
+  self: 15
+  environmental: 20
+  group: 5
+  story: 10
+
+# Additional events
+extra_events:
+  non_lethal_story_chance: 0.20
+  extra_lethal_base_chance: 0.02
+  comeback_base_chance: 0.15
+
+# Lethal modifiers
+lethal_modifiers:
+  cap_8_plus: 0.10
+  cap_12_plus: 0.20
+
