@@ -30,7 +30,7 @@ logger.handlers = [json_handler]
 
 # --- Constants --- 
 DEFAULT_SEED = 42 # set to None for random seed
-CHARACTER_NAME_LIST_PATH = None # Using internal list from utils for now
+CHARACTER_NAME_LIST_PATH = None # Use internal list from utils
 
 def setup_repositories(db_session):
     """Initializes and returns all repository instances."""
