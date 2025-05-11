@@ -270,11 +270,11 @@ def main():
     args = sys.argv[1:]
 
     if args and args[0] == "batch":
-        file_handler = logging.FileHandler("all_runs.log")
+        file_handler = logging.FileHandler("tests/all_runs.log")
         file_handler.setFormatter(JSONFormatter())
         logging.getLogger().addHandler(file_handler)
 
-        for seed in range(1, 101):
+        for seed in range(1, 5):
             logging.getLogger().info(
                 "batch_start_seed",
                 extra={"seed": seed}
