@@ -8,20 +8,18 @@ import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from core.config_loader import load_config
-from core.scenario_loader import load_scenarios
-from core.models import init_db, Player, Character
-from core.db import get_session
-from core.repositories import (
-    SqlPlayerRepo,
-    SqlCharacterRepo,
-    SqlMatchRepo,
-    SqlEventRepo,
-    SqlItemRepo
-)
-from core.engine import MatchEngine
-from core.utils import SeedableRandom, get_next_character_name
-from core.logging_config import JSONFormatter
+from core.config.config_loader import load_config
+from core.match.scenario_loader import load_scenarios
+from core.database.models import init_db, Player, Character
+from core.database.db import get_session
+from core.player.repository import SqlPlayerRepo
+from core.player.character_repository import SqlCharacterRepo
+from core.match.repository import SqlMatchRepo
+from core.match.event_repository import SqlEventRepo
+from core.player.item_repository import SqlItemRepo
+from core.match.engine import MatchEngine
+from core.common.utils import SeedableRandom, get_next_character_name
+from core.config.logging_config import JSONFormatter
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
