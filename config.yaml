@@ -1,7 +1,7 @@
 # —————————————————————
 # Paths & Database URL
-scenario_dir: "/home/ubuntu/coin_clash/scenarios"
-database_url: "sqlite:////home/ubuntu/coin_clash/data/coin_clash.db"
+scenario_dir: "scenarios"
+database_url: "sqlite:///data/coin_clash.db"
 # —————————————————————
 
 
