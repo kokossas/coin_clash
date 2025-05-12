@@ -41,9 +41,8 @@ ENV/
 *.log
 logs/
 
-# Project specific
-# Uncomment if you want to exclude the database file from version control
-# data/coin_clash.db
+# Project/IDE specific
+.windsurfrules
 
 # Backup files
 *.bak
