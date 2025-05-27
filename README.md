@@ -15,14 +15,26 @@ This repository contains the backend game engine and the ongoing migration to a 
 
 ## Migration Status
 
-The project is currently in Phase 1 of an incremental migration plan:
+The project is currently in Phase 2 of an incremental migration plan:
 
-- ✅ Database migration from SQLite to PostgreSQL
-- ✅ REST API implementation with FastAPI
-- ✅ Authentication system with JWT
-- ✅ Service layer abstraction
-- ✅ Blockchain integration preparation
-- 🔄 Frontend development (in progress)
+- ✅ Phase 1: Database migration from SQLite to PostgreSQL
+  - ✅ REST API implementation with FastAPI
+  - ✅ Authentication system with JWT
+  - ✅ Service layer abstraction
+  - ✅ Blockchain integration preparation
+
+- ✅ Phase 2: Blockchain Abstraction Layer (Current)
+  - ✅ Wallet interface and mock provider
+  - ✅ Payment interface and mock provider
+  - ✅ Transaction interface and mock provider
+  - ✅ Asset interface and mock provider
+  - ✅ Blockchain error handling and retry mechanisms
+  - ✅ Service factory for provider management
+
+- 🔄 Phase 3: Blockchain Integration (Next)
+  - 🔄 Polygon and Solana provider implementations
+  - 🔄 Smart contract integration
+  - 🔄 Frontend wallet connection
 
 ## Project Structure
 
@@ -35,7 +47,14 @@ The project is currently in Phase 1 of an incremental migration plan:
     /db/            # Database connection and models
     /models/        # SQLAlchemy models
     /schemas/       # Pydantic schemas
-    /services/      # Business logic services
+    /services/      
+      /auth/        # Authentication services
+      /blockchain/  # Blockchain abstraction layer
+        /wallet/    # Wallet connection and verification
+        /payment/   # Deposits and withdrawals
+        /transaction/ # Blockchain transactions
+        /asset/     # Asset management (NFTs)
+      /payment/     # Payment processing
     main.py         # FastAPI application
   /tests/           # Test suite
 /core/              # Original game engine
@@ -50,6 +69,7 @@ The project is currently in Phase 1 of an incremental migration plan:
 - Python 3.8+
 - PostgreSQL 13+
 - Docker and Docker Compose (optional)
+- pytest-asyncio (for running blockchain abstraction tests)
 
 ### Installation
 
@@ -57,12 +77,13 @@ The project is currently in Phase 1 of an incremental migration plan:
    ```
    git clone https://github.com/kokossas/coin_clash.git
    cd coin_clash
-   git checkout migration
+   git checkout phase2_blockchain_abs
    ```
 
 2. Install dependencies:
    ```
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
+   pip install pytest-asyncio  # Required for blockchain tests
    ```
 
 3. Set up PostgreSQL:
@@ -88,8 +109,38 @@ The project is currently in Phase 1 of an incremental migration plan:
 ### Running Tests
 
 ```
+# Run all tests
 pytest backend/tests/
+
+# Run blockchain abstraction tests specifically
+pytest backend/tests/services/blockchain/
 ```
+
+## Blockchain Abstraction Layer
+
+The blockchain abstraction layer provides a clean separation between game logic and blockchain implementations, allowing for:
+
+- Development and testing without actual blockchain dependencies
+- Support for multiple blockchain networks (Polygon, Solana)
+- Consistent error handling and retry mechanisms
+- Future extensibility for additional chains
+
+### Key Components
+
+- **Wallet Interface**: Connect to wallets, verify signatures, manage chain support
+- **Payment Interface**: Process deposits/withdrawals, check balances, estimate fees
+- **Transaction Interface**: Create and monitor blockchain transactions
+- **Asset Interface**: Create, transfer, and update blockchain assets (NFTs)
+
+### Mock Providers
+
+All interfaces include mock implementations that simulate blockchain behavior with:
+- Configurable network delays
+- Simulated transaction lifecycles
+- Realistic error scenarios
+- In-memory state management
+
+For detailed documentation, see [PHASE2_CHANGES.md](PHASE2_CHANGES.md).
 
 ## API Documentation
 
@@ -102,19 +153,20 @@ Once the server is running, API documentation is available at:
 
 The project is following an incremental migration approach:
 
-1. **Phase 1: Database and API Layer** (Current)
+1. **Phase 1: Database and API Layer** (Completed)
    - PostgreSQL migration
    - REST API implementation
    - Authentication system
    - Service layer abstraction
 
-2. **Phase 2: Blockchain Abstraction Layer** (Next)
-   - Refine payment provider interfaces
-   - Develop blockchain transaction models
-   - Create wallet interaction abstractions
-   - Implement mock blockchain services
+2. **Phase 2: Blockchain Abstraction Layer** (Current)
+   - Wallet interface and mock provider
+   - Payment interface and mock provider
+   - Transaction interface and mock provider
+   - Asset interface and mock provider
+   - Blockchain error handling and retry mechanisms
 
-3. **Phase 3: Blockchain Integration**
+3. **Phase 3: Blockchain Integration** (Next)
    - Wallet integration
    - Smart contract development
    - Blockchain transaction monitoring
@@ -129,11 +181,10 @@ The project is following an incremental migration approach:
 ## Contributing
 
 1. Check the `TASK.md` file for current development tasks
-2. Create a feature branch from `migration`
+2. Create a feature branch from the current phase branch
 3. Implement your changes with tests
 4. Submit a pull request
 
 ## License
 
 [License information]
-
