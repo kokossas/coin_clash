@@ -274,7 +274,7 @@ def main():
         file_handler.setFormatter(JSONFormatter())
         logging.getLogger().addHandler(file_handler)
 
-        for seed in range(1, 5):
+        for seed in range(1, 50):
             logging.getLogger().info(
                 "batch_start_seed",
                 extra={"seed": seed}
