@@ -1,84 +1,160 @@
-# Coin Clash Incremental Migration Todo List
+# Coin Clash Phase 2: Blockchain Abstraction Layer Todo List
 
-## Analysis and Planning
-- [x] Review PLANNING.md and TASK.md documents
-- [x] Update PLANNING.md and TASK.md in the repository
-- [x] Analyze current codebase structure
-- [x] Identify database models and their relationships
-- [x] Map current functionality to planned API endpoints
-- [x] Create detailed migration plan with priorities
+## Interface Definition
 
-## Project Setup
-- [x] Create backend directory structure
-  - [x] Create `/backend/` directory
-  - [x] Create `/backend/app/` directory
-  - [x] Create `/backend/app/api/` directory
-  - [x] Create `/backend/app/core/` directory
-  - [x] Create `/backend/app/db/` directory
-  - [x] Create `/backend/app/schemas/` directory
-  - [x] Create `/backend/app/services/` directory
-  - [x] Create `/backend/app/models/` directory
-- [x] Set up dependency management
-  - [x] Update requirements.txt with FastAPI, Uvicorn, SQLAlchemy, Alembic, Pydantic, psycopg2-binary
-- [x] Configure PostgreSQL connection
-  - [x] Create database configuration file
-  - [x] Set up connection string handling
+### Wallet Interface
+- [ ] Create directory structure for blockchain services
+- [ ] Define wallet interface contract in `/backend/app/services/blockchain/wallet/base.py`
+- [ ] Implement wallet connection/disconnection methods
+- [ ] Implement signature verification methods
+- [ ] Implement chain support methods
 
-## Database Migration
-- [x] Create PostgreSQL-compatible base models
-  - [x] Create base model class
-  - [x] Migrate Player model
-  - [x] Migrate Character model
-  - [x] Migrate Match model
-  - [x] Migrate MatchEvent model
-  - [x] Migrate Item model
-  - [x] Migrate PlayerItem model
-- [x] Extend models with blockchain-ready fields
-  - [x] Add wallet fields to Player model
-  - [x] Add blockchain settlement fields to Match model
-  - [x] Create Transaction model
-- [x] Set up database session management
-  - [x] Create session management utilities
-  - [x] Set up dependency injection for FastAPI
+### Payment Interface (Highest Priority)
+- [ ] Define payment interface contract in `/backend/app/services/blockchain/payment/base.py`
+- [ ] Implement deposit/withdrawal method definitions
+- [ ] Implement balance checking method definitions
+- [ ] Implement fee estimation method definitions
 
-## Core API Framework
-- [x] Set up FastAPI application
-  - [x] Create main application file
-  - [x] Configure middleware
-  - [x] Set up CORS
-- [x] Implement API router structure with versioning
-  - [x] Create main API router
-  - [x] Set up versioned endpoints
-- [x] Create Pydantic schemas for models
-  - [x] Create Player schemas
-  - [x] Create Character schemas
-  - [x] Create Match schemas
-  - [x] Create Transaction schemas
-  - [x] Create Token schemas
-- [x] Implement repository pattern for database access
-  - [x] Create base repository
-  - [x] Implement Player repository
-  - [x] Implement Character repository
-  - [x] Implement Match repository
-  - [x] Implement Transaction repository
-- [x] Create service layer for business logic
-  - [x] Create authentication service
-  - [x] Create payment provider interface
-  - [x] Implement mock payment provider
+### Transaction Interface (Highest Priority)
+- [ ] Define transaction interface contract in `/backend/app/services/blockchain/transaction/base.py`
+- [ ] Implement transaction creation method definitions
+- [ ] Implement status monitoring method definitions
+- [ ] Implement transaction history method definitions
+- [ ] Implement retry functionality method definitions
 
-## Testing and Validation
-- [x] Create unit tests for models
-- [x] Create unit tests for repositories
-- [x] Fix import issues in test modules
-- [x] Run and validate all tests
+### Asset Interface
+- [ ] Define asset interface contract in `/backend/app/services/blockchain/asset/base.py`
+- [ ] Implement asset creation method definitions
+- [ ] Implement transfer method definitions
+- [ ] Implement metadata management method definitions
+- [ ] Implement ownership verification method definitions
+
+### Error Handling Framework
+- [ ] Define error handling framework in `/backend/app/services/blockchain/errors.py`
+- [ ] Implement BlockchainErrorType enum
+- [ ] Implement base BlockchainError class
+- [ ] Implement specialized error classes
+- [ ] Implement retry mechanism in `/backend/app/services/blockchain/retry.py`
+
+## Mock Implementation
+
+### Mock Wallet Provider
+- [ ] Implement mock wallet provider in `/backend/app/services/blockchain/wallet/mock_provider.py`
+- [ ] Implement in-memory wallet storage
+- [ ] Implement connect/disconnect methods
+- [ ] Implement signature verification
+- [ ] Implement chain support methods
+
+### Mock Payment Provider (Highest Priority)
+- [ ] Implement mock payment provider in `/backend/app/services/blockchain/payment/mock_provider.py`
+- [ ] Implement in-memory balance tracking
+- [ ] Implement deposit/withdrawal methods
+- [ ] Implement fee estimation
+- [ ] Implement configurable delay simulation
+
+### Mock Transaction Provider (Highest Priority)
+- [ ] Implement mock transaction provider in `/backend/app/services/blockchain/transaction/mock_provider.py`
+- [ ] Implement transaction creation and tracking
+- [ ] Implement status monitoring
+- [ ] Implement transaction history
+- [ ] Implement retry functionality
+
+### Mock Asset Provider
+- [ ] Implement mock asset provider in `/backend/app/services/blockchain/asset/mock_provider.py`
+- [ ] Implement asset creation and tracking
+- [ ] Implement transfer functionality
+- [ ] Implement metadata management
+- [ ] Implement ownership verification
+
+## Core Integration
+
+### Blockchain Service Factory
+- [ ] Implement blockchain service factory in `/backend/app/services/blockchain/factory.py`
+- [ ] Implement provider factory methods
+- [ ] Set up configuration-based provider selection
+- [ ] Implement singleton pattern for providers
+
+### Transaction Monitoring Service
+- [ ] Implement transaction monitoring service in `/backend/app/services/blockchain/monitor.py`
+- [ ] Implement background task for status monitoring
+- [ ] Implement webhook handler
+- [ ] Implement notification system
+
+### Player Service Integration
+- [ ] Update player service to integrate with wallet provider
+- [ ] Add wallet association methods
+- [ ] Update player creation and retrieval to support wallet addresses
+
+### Match Service Integration
+- [ ] Update match service to integrate with payment and transaction providers
+- [ ] Add payment processing for match entry
+- [ ] Update match settlement to use transaction provider
+
+### Character Service Integration
+- [ ] Update character service to integrate with asset provider
+- [ ] Add asset integration for characters
+- [ ] Update character lifecycle management
+
+## API Endpoints
+
+### Wallet Endpoints
+- [ ] Implement wallet endpoints in `/backend/app/api/api_v1/endpoints/wallets.py`
+- [ ] Implement connect/disconnect endpoints
+- [ ] Implement wallet verification endpoints
+- [ ] Implement chain selection endpoints
+
+### Transaction Endpoints
+- [ ] Update transaction endpoints to use blockchain abstraction
+- [ ] Add blockchain-specific transaction endpoints
+- [ ] Implement transaction monitoring endpoints
+
+## Testing
+
+### Unit Tests for Interfaces
+- [ ] Create unit tests for wallet interface
+- [ ] Create unit tests for payment interface
+- [ ] Create unit tests for transaction interface
+- [ ] Create unit tests for asset interface
+
+### Mock Provider Tests
+- [ ] Create tests for mock wallet provider
+- [ ] Create tests for mock payment provider
+- [ ] Create tests for mock transaction provider
+- [ ] Create tests for mock asset provider
+
+### Integration Tests
+- [ ] Create integration tests for blockchain services
+- [ ] Test interaction between services and blockchain providers
+- [ ] Test error handling and recovery
+- [ ] Test state management and consistency
+
+### Simulation Tests
+- [ ] Create simulation tests for blockchain scenarios
+- [ ] Test network issues and timeouts
+- [ ] Test transaction failures and retries
+- [ ] Test concurrent operations
 
 ## Documentation
-- [ ] Update README.md with setup instructions
-- [ ] Document API endpoints
-- [ ] Document database schema
-- [ ] Document migration process
 
-## Deployment
-- [ ] Push changes to migration branch
-- [ ] Verify all tests pass on CI
-- [ ] Document deployment process
+### API Documentation
+- [ ] Update API documentation for blockchain endpoints
+- [ ] Document wallet endpoints
+- [ ] Document transaction endpoints
+
+### Interface Documentation
+- [ ] Create documentation for blockchain interfaces
+- [ ] Document interface contracts and expected behaviors
+- [ ] Document error handling and recovery
+- [ ] Provide usage examples
+
+### Mock Provider Documentation
+- [ ] Create documentation for mock providers
+- [ ] Document configuration options
+- [ ] Document simulated behaviors
+- [ ] Document testing utilities
+
+### README Update
+- [ ] Update README.md with blockchain abstraction layer information
+- [ ] Update project structure
+- [ ] Update development roadmap
+- [ ] Add setup instructions for blockchain testing
