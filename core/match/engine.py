@@ -108,21 +108,6 @@ class MatchEngine:
         selected_ids = self.random.sample(list(source_pool.keys()), k=count)
         return [source_pool[id] for id in selected_ids]
 
-    # def _substitute_placeholders(self, text: str, participants: List[Character]) -> str:
-    #     """Substitutes [Character A], [B]... with participant display names."""
-    #     substituted_text = text
-    #     #CHANGE HAPPENING
-    #     #placeholders = sorted(list(set(re.findall(r"(\\\[Character [A-Z]\\])", text))))
-    #     placeholders = sorted(list(set(re.findall(r"(\[Character [A-Z]\])", text))))
-    #     # Ensure we have enough participants for placeholders found
-    #     if len(participants) < len(placeholders):
-    #          logger.warning(f"Not enough participants ({len(participants)}) for placeholders {placeholders} in ", text)
-    #          # Decide how to handle this - maybe return original text or skip event?
-    #          # For now, return partially substituted
-    #          max_subs = len(participants)
-    #     else:
-    #          max_subs = len(placeholders)
-
     def _substitute_placeholders(self, text: str, participants: List[Character]) -> str:
         """Substitutes [Character A], [B]... with participant display names.
         If there aren’t enough participants, raises InsufficientParticipantsError."""
