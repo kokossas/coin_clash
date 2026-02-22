@@ -8,14 +8,12 @@ class Player(Base, BaseModel):
     __tablename__ = "players"
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
+    wallet_address = Column(String, unique=True, nullable=False)
+    username = Column(String, nullable=True)  # display name, auto-assigned if null
     balance = Column(Float, default=0.0)
     wins = Column(Integer, default=0)
     kills = Column(Integer, default=0)
     total_sui_earned = Column(Float, default=0.0)
-    
-    # Blockchain-ready fields
-    wallet_address = Column(String, nullable=True)
     wallet_chain_id = Column(String, nullable=True)
 
     characters = relationship("Character", back_populates="player_owner")
@@ -27,7 +25,7 @@ class Character(Base, BaseModel):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    owner_username = Column(String, ForeignKey("players.username"), nullable=False)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
     match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
     is_alive = Column(Boolean, default=True)
 
@@ -36,7 +34,7 @@ class Character(Base, BaseModel):
 
     @property
     def display_name(self):
-        return f"{self.name} ({self.owner_username})"
+        return f"{self.name} ({self.player_owner.username})"
 
 class Match(Base, BaseModel):
     __tablename__ = "matches"

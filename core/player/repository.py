@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from ..common.repository import BaseRepo
-from ..database.models import Player, PlayerItem
+from backend.app.models.models import Player, PlayerItem
 
 class PlayerRepo(BaseRepo):
     """Repository interface for player operations."""
@@ -17,6 +17,18 @@ class PlayerRepo(BaseRepo):
         
         Args:
             username: The player's username
+            
+        Returns:
+            Player object if found, None otherwise
+        """
+        pass
+
+    def get_player_by_id(self, player_id: int) -> Optional[Player]:
+        """
+        Get a player by their ID.
+        
+        Args:
+            player_id: The player's internal PK
             
         Returns:
             Player object if found, None otherwise
@@ -141,6 +153,9 @@ class SqlPlayerRepo(PlayerRepo):
     
     def get_player_by_username(self, username: str) -> Optional[Player]:
         return self.db.query(Player).filter(Player.username == username).first()
+
+    def get_player_by_id(self, player_id: int) -> Optional[Player]:
+        return self.db.query(Player).filter(Player.id == player_id).first()
 
     def create_player(self, username: str) -> Player:
         db_player = Player(username=username)

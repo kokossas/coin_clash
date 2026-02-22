@@ -1,17 +1,17 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 
 class CharacterBase(BaseModel):
     name: str
-    owner_username: str
+    player_id: int
 
 class CharacterCreate(CharacterBase):
     pass
 
-class CharacterUpdate(CharacterBase):
+class CharacterUpdate(BaseModel):
     name: Optional[str] = None
-    owner_username: Optional[str] = None
+    player_id: Optional[int] = None
     match_id: Optional[int] = None
     is_alive: Optional[bool] = None
 
@@ -20,7 +20,7 @@ class CharacterInDBBase(CharacterBase):
     match_id: Optional[int] = None
     is_alive: bool
     created_at: datetime
-    
+
     class Config:
         orm_mode = True
 

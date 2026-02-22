@@ -7,15 +7,11 @@ import logging
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from ..database.models import Match, Character
+from backend.app.models.models import Match, Character
 from ..player.repository import PlayerRepo
 from ..player.character_repository import CharacterRepo
 from .repository import MatchRepo
-from .event_repository import EventRepo
 from ..common.exceptions import MatchAlreadyActiveError
-from ..config.config_loader import load_config
-from .engine import MatchEngine
-from ..scheduler.scheduler import scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -150,23 +146,23 @@ class MatchService:
             # Get all characters and players in this match
             characters = self.db.query(Character).filter(Character.match_id == match_id).all()
             
-            # Group characters by owner
-            player_characters = {}
+            # Group characters by player_id
+            player_characters: dict = {}
             for character in characters:
-                if character.owner_username not in player_characters:
-                    player_characters[character.owner_username] = []
-                player_characters[character.owner_username].append(character)
+                if character.player_id not in player_characters:
+                    player_characters[character.player_id] = []
+                player_characters[character.player_id].append(character)
             
             # Find players who joined but haven't purchased characters
-            joined_players = set(player_characters.keys())
+            joined_player_ids = set(player_characters.keys())
             players_without_purchases = [
-                username for username in joined_players 
-                if len(player_characters.get(username, [])) == 0
+                pid for pid in joined_player_ids
+                if len(player_characters.get(pid, [])) == 0
             ]
             
             # Auto-assign default characters to players without purchases
-            for username in players_without_purchases:
-                self._assign_default_character(username, match_id, match.entry_fee)
+            for player_id in players_without_purchases:
+                self._assign_default_character(player_id, match_id, match.entry_fee)
                 
             # Set match as active
             self.match_repo.update_match_status(match_id, "active")
@@ -195,35 +191,26 @@ class MatchService:
             return False
     
     def _assign_default_character(self, 
-                                  username: str, 
+                                  player_id: int, 
                                   match_id: int, 
                                   entry_fee: float) -> Optional[Character]:
         """
         Create and assign a default character to a player for this match,
         deducting the entry fee from their balance.
-        
-        Args:
-            username: Player's username
-            match_id: Match ID
-            entry_fee: Fee to deduct
-            
-        Returns:
-            The created Character or None if player can't afford it
         """
-        player = self.player_repo.get_player_by_username(username)
+        player = self.player_repo.get_player_by_id(player_id)
         if not player:
             logger.warning(
                 "player_not_found_for_default_assignment",
-                extra={"username": username, "match_id": match_id}
+                extra={"player_id": player_id, "match_id": match_id}
             )
             return None
             
-        # Check if player can afford the entry fee
         if player.balance < entry_fee:
             logger.warning(
                 "insufficient_balance_for_default_assignment",
                 extra={
-                    "username": username, 
+                    "player_id": player_id,
                     "match_id": match_id,
                     "balance": player.balance,
                     "required": entry_fee
@@ -231,22 +218,19 @@ class MatchService:
             )
             return None
             
-        # Deduct fee
         self.player_repo.update_player_balance(player.id, -entry_fee)
         
-        # Create default character
         character = self.character_repo.create_character(
-            name=f"Default_{username}_{match_id}",
-            owner_username=username
+            name=f"Default_{player.username}_{match_id}",
+            player_id=player.id
         )
         
-        # Assign to match
         self.character_repo.assign_character_to_match(character.id, match_id)
         
         logger.info(
             "default_character_assigned",
             extra={
-                "username": username,
+                "player_id": player_id,
                 "match_id": match_id,
                 "character_id": character.id
             }
@@ -255,35 +239,5 @@ class MatchService:
         return character
     
     def _run_match(self, match_id: int):
-        """
-        Run the match using the MatchEngine.
-        In a real implementation, this would be done asynchronously.
-        
-        Args:
-            match_id: ID of the match to run
-        """
-        # In a real implementation, this would be delegated to a background worker
-        # For simplicity, we'll just run it here
-        try:
-            config = load_config()
-            
-            # Create engine dependencies
-            engine = MatchEngine(
-                match_id=match_id,
-                config=config,
-                scenarios={},  # This would need to be loaded from scenario_loader
-                player_repo=self.player_repo,
-                character_repo=self.character_repo,
-                match_repo=self.match_repo,
-                event_repo=None,  # This would need to be provided in a real implementation
-                item_repo=None,   # This would need to be provided in a real implementation
-            )
-            
-            # Run the match
-            engine.run_match()
-            
-        except Exception as e:
-            logger.error(
-                "match_engine_failure",
-                extra={"match_id": match_id, "error": str(e)}
-            )
+        from backend.app.services.match_runner import run_match_background
+        run_match_background(match_id, self.db)

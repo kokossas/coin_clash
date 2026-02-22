@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from ..common.repository import BaseRepo
-from ..database.models import Match, Character
+from backend.app.models.models import Match, Character
 
 class MatchRepo(BaseRepo):
     """Repository interface for match operations."""
@@ -192,8 +192,8 @@ class SqlMatchRepo(MatchRepo):
         character_counts = {}
         
         for character in characters:
-            joined_players.add(character.owner_username)
-            character_counts[character.owner_username] = character_counts.get(character.owner_username, 0) + 1
+            joined_players.add(character.player_id)
+            character_counts[character.player_id] = character_counts.get(character.player_id, 0) + 1
         
         joined_count = len(joined_players)
         # Count players who have at least one character

@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from ..common.repository import BaseRepo
-from ..database.models import Item
+from backend.app.models.models import Item
 
 class ItemRepo(BaseRepo):
     """Repository interface for item operations."""

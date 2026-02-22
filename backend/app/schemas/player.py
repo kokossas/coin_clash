@@ -1,14 +1,15 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 
 class PlayerBase(BaseModel):
-    username: str
+    wallet_address: str
+    username: Optional[str] = None
 
 class PlayerCreate(PlayerBase):
     pass
 
-class PlayerUpdate(PlayerBase):
+class PlayerUpdate(BaseModel):
     username: Optional[str] = None
     balance: Optional[float] = None
     wins: Optional[int] = None
@@ -24,9 +25,8 @@ class PlayerInDBBase(PlayerBase):
     kills: int
     total_sui_earned: float
     created_at: datetime
-    wallet_address: Optional[str] = None
     wallet_chain_id: Optional[str] = None
-    
+
     class Config:
         orm_mode = True
 

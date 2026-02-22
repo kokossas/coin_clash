@@ -4,7 +4,7 @@ import re
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 
-from ..database.models import Character
+from backend.app.models.models import Character
 from ..player.repository import PlayerRepo
 from ..player.character_repository import CharacterRepo
 from ..player.item_repository import ItemRepo
@@ -173,7 +173,7 @@ class MatchEngine:
         if len(participants) >= 2:
             victim, killer = participants[1], participants[0]
             self._apply_elimination(victim)
-            player = self.player_repo.get_player_by_username(killer.owner_username)
+            player = self.player_repo.get_player_by_id(killer.player_id)
             if player:
                 self.player_repo.add_kill(player.id)
                 award = self.entry_fee * self.kill_award_rate
@@ -551,7 +551,7 @@ class MatchEngine:
             self.match_log.append(f"\n--- Match Over --- Winner: {winner.display_name} ---")
 
             # Update winner stats
-            winner_player = self.player_repo.get_player_by_username(winner.owner_username)
+            winner_player = self.player_repo.get_player_by_id(winner.player_id)
             if winner_player:
                 self.player_repo.add_win(winner_player.id)
                 

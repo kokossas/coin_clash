@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..match.service import MatchService
 from sqlalchemy.orm import Session
 
-from ..database.models import Player, Character
+from backend.app.models.models import Player, Character
 from .repository import PlayerRepo
 from .character_repository import CharacterRepo
 from ..match.repository import MatchRepo
@@ -85,7 +85,7 @@ class CharacterService:
         # Create character
         character = self.character_repo.create_character(
             name=character_name,
-            owner_username=username
+            player_id=player.id
         )
         
         # Assign to match

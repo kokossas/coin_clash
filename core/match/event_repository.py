@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from ..common.repository import BaseRepo
-from ..database.models import MatchEvent
+from backend.app.models.models import MatchEvent
 
 class EventRepo(BaseRepo):
     """Repository interface for match event operations."""

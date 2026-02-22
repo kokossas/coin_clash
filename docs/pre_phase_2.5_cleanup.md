@@ -143,6 +143,7 @@ Resolves two problems:
 | `core/match/repository.py` | Modify — imports only |
 | `core/match/event_repository.py` | Modify — imports only |
 | `core/match/engine.py` | Modify — owner_username → player_id |
+| `core/player/service.py` | Modify — create_character call uses player_id (already in scope from prior lookup) |
 | `core/database/models.py` | Delete |
 | `core/database/db.py` | Delete |
 | `core/database/__init__.py` | Modify |
