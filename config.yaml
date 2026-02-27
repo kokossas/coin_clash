@@ -1,7 +1,6 @@
 # —————————————————————
-# Paths & Database URL
+# Paths
 scenario_dir: "scenarios"
-database_url: "sqlite:///data/coin_clash.db"
 # —————————————————————
 
 

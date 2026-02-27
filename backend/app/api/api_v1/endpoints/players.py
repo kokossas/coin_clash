@@ -28,11 +28,11 @@ def create_player(
     """
     Create new player
     """
-    player = crud_player.get_by_username(db, username=player_in.username)
-    if player:
+    existing = crud_player.get_by_wallet_address(db, wallet_address=player_in.wallet_address)
+    if existing:
         raise HTTPException(
             status_code=400,
-            detail="Username already registered"
+            detail="Wallet address already registered"
         )
     return crud_player.create(db, obj_in=player_in)
 

@@ -46,14 +46,14 @@ class CharacterService:
         self.db = db_session
     
     def purchase_character(self, 
-                          username: str, 
+                          player_id: int, 
                           match_id: int, 
                           character_name: str) -> Character:
         """
         Purchase a character for a player in a specific match.
         
         Args:
-            username: Player's username
+            player_id: Player's ID
             match_id: Match ID
             character_name: Name for the character
             
@@ -73,9 +73,9 @@ class CharacterService:
             raise MatchAlreadyActiveError(f"Match {match_id} is already {match.status}")
         
         # Get player and verify they can afford the entry fee
-        player = self.player_repo.get_player_by_username(username)
+        player = self.player_repo.get_player_by_id(player_id)
         if not player:
-            player = self.player_repo.create_player(username)
+            raise ValueError(f"Player with ID {player_id} not found")
             
         if player.balance < match.entry_fee:
             raise InsufficientBalanceError(
@@ -97,7 +97,7 @@ class CharacterService:
         logger.info(
             "character_purchased",
             extra={
-                "username": username,
+                "player_id": player_id,
                 "match_id": match_id,
                 "character_id": character.id,
                 "character_name": character_name,
@@ -116,73 +116,33 @@ class PlayerService:
     """Service for player management operations."""
     
     def __init__(self, player_repo: PlayerRepo, db_session: Session):
-        """
-        Initialize the player service.
-        
-        Args:
-            player_repo: Repository for player operations
-            db_session: Database session
-        """
         self.player_repo = player_repo
         self.db = db_session
     
-    def get_player(self, username: str) -> Optional[Player]:
-        """
-        Get a player by username.
-        
-        Args:
-            username: Player's username
-            
-        Returns:
-            Player if found, None otherwise
-        """
-        return self.player_repo.get_player_by_username(username)
+    def get_player_by_id(self, player_id: int) -> Optional[Player]:
+        return self.player_repo.get_player_by_id(player_id)
     
-    def create_player(self, username: str) -> Player:
-        """
-        Create a new player.
-        
-        Args:
-            username: Player's username
-            
-        Returns:
-            The created Player
-        """
-        player = self.player_repo.create_player(username)
+    def get_player_by_wallet(self, wallet_address: str) -> Optional[Player]:
+        return self.player_repo.get_player_by_wallet_address(wallet_address)
+    
+    def create_player(self, wallet_address: str, username: Optional[str] = None) -> Player:
+        player = self.player_repo.create_player(wallet_address=wallet_address, username=username)
         self.db.commit()
         return player
     
     def add_balance(self, player_id: int, amount: float) -> Optional[Player]:
-        """
-        Add balance to a player's account.
-        
-        Args:
-            player_id: Player's ID
-            amount: Amount to add (can be negative to deduct)
-            
-        Returns:
-            Updated Player if found, None otherwise
-        """
         player = self.player_repo.update_player_balance(player_id, amount)
         if player:
             self.db.commit()
         return player
     
-    def get_player_stats(self, username: str) -> dict:
-        """
-        Get a player's stats including wins, kills, and earnings.
-        
-        Args:
-            username: Player's username
-            
-        Returns:
-            Dictionary of player stats or empty dict if player not found
-        """
-        player = self.player_repo.get_player_by_username(username)
+    def get_player_stats(self, player_id: int) -> dict:
+        player = self.player_repo.get_player_by_id(player_id)
         if not player:
             return {}
             
         return {
+            "wallet_address": player.wallet_address,
             "username": player.username,
             "balance": player.balance,
             "wins": player.wins,

@@ -65,17 +65,6 @@ def get_next_character_name() -> str:
     _name_index += 1
     return name
 
-# Global index pointer for character names (will be managed by the part creating characters)
-# This simple approach might have issues with concurrency if scaled, but fine for simulation.
-# A better approach might involve a dedicated sequence in the DB.
-_character_name_index = 0
 
-def get_next_character_name() -> str:
-    global _character_name_index
-    name = CHARACTER_NAMES[_character_name_index % len(CHARACTER_NAMES)]
-    _character_name_index += 1
-    # Maybe add the index to make it unique if list repeats often?
-    # For now, just cycle.
-    return name
 
 

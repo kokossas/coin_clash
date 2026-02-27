@@ -27,8 +27,8 @@ class MatchUpdate(MatchBase):
 class MatchInDBBase(MatchBase):
     id: int
     start_timer_end: Optional[datetime] = None
-    start_timestamp: datetime
-    end_timestamp: datetime
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
     winner_character_id: Optional[int] = None
     status: str
     created_at: datetime

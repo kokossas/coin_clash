@@ -1,19 +1,28 @@
 import pytest
+import random
+import string
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import sys
 import os
 
-# Add the backend directory to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.db.base_class import Base
 from app.models.models import Player, Character, Match, MatchEvent, Item, PlayerItem, Transaction
 from app.core.config import settings
 
-# Use in-memory SQLite for tests
 TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+
+def _random_string(k: int = 10) -> str:
+    return ''.join(random.choices(string.ascii_lowercase, k=k))
+
+
+# Expose on pytest namespace for API tests that use it inline
+pytest.random_string = _random_string
+
 
 @pytest.fixture
 def db_session():
@@ -24,19 +33,20 @@ def db_session():
     )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
-    
+
     db = TestingSessionLocal()
     try:
         yield db
     finally:
         db.close()
-        
-    # Clean up
+
     Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture
 def test_player(db_session):
     player = Player(
+        wallet_address=f"0x{_random_string(40)}",
         username="test_user",
         balance=100.0,
         wins=5,
@@ -48,17 +58,19 @@ def test_player(db_session):
     db_session.refresh(player)
     return player
 
+
 @pytest.fixture
 def test_character(db_session, test_player):
     character = Character(
         name="Test Character",
-        owner_username=test_player.username,
+        player_id=test_player.id,
         is_alive=True
     )
     db_session.add(character)
     db_session.commit()
     db_session.refresh(character)
     return character
+
 
 @pytest.fixture
 def test_match(db_session):
@@ -73,6 +85,7 @@ def test_match(db_session):
     db_session.commit()
     db_session.refresh(match)
     return match
+
 
 @pytest.fixture
 def test_transaction(db_session, test_player):
