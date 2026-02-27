@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -25,8 +25,7 @@ class OwnedCharacterInDBBase(OwnedCharacterBase):
     last_match_id: Optional[int] = None
     revival_count: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OwnedCharacter(OwnedCharacterInDBBase):

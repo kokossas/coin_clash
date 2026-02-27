@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -27,8 +27,7 @@ class CharacterInDBBase(CharacterBase):
     entry_order: int = 0
     elimination_round: Optional[int] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class Character(CharacterInDBBase):
     pass

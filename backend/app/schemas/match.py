@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
@@ -52,8 +52,7 @@ class MatchInDBBase(MatchBase):
     protocol_fee_percentage: Decimal = Decimal("10.0")
     countdown_started_at: Optional[datetime] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class Match(MatchInDBBase):
     pass

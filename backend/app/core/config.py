@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn
+from pydantic import PostgresDsn, ConfigDict
 from typing import Optional, Dict, Any
 import os
 
@@ -27,9 +27,8 @@ class Settings(BaseSettings):
     DEFAULT_FEE: float = 1.0
     KILL_AWARD_RATE_DEFAULT: float = 0.5
     
-    class Config:
-        case_sensitive = True
-        
+    model_config = ConfigDict(case_sensitive=True)
+    
     def __init__(self, **data: Any):
         super().__init__(**data)
         # Construct DATABASE_URL if not provided
