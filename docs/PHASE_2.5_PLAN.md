@@ -58,10 +58,10 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| `purchase_characters(player_id, quantity, payment_ref)` | `backend/app/services/character_inventory.py` | ⬜ |
-| `get_player_inventory(player_id, alive_only)` | `backend/app/services/character_inventory.py` | ⬜ |
-| `revive_character(character_id, player_id, payment_ref)` | `backend/app/services/character_inventory.py` | ⬜ |
-| Integration with `BlockchainServiceFactory.get_payment_provider()` | `backend/app/services/character_inventory.py` | ⬜ |
+| `purchase_characters(player_id, quantity, payment_ref)` | `backend/app/services/character_inventory.py` | ✅ Done |
+| `get_player_inventory(player_id, alive_only)` | `backend/app/services/character_inventory.py` | ✅ Done |
+| `revive_character(character_id, player_id, payment_ref)` | `backend/app/services/character_inventory.py` | ✅ Done |
+| Integration with `BlockchainServiceFactory.get_payment_provider()` | `backend/app/services/character_inventory.py` | ✅ Done |
 
 ---
 
@@ -90,8 +90,8 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| Round delay: `random.uniform(min, max)` seconds, behind `round_delay_enabled` flag | `core/match/engine.py` | ⬜ |
-| Post-match sync: `match_characters.is_alive` → `owned_characters.is_alive`, set `last_match_id` | `core/match/engine.py` | ⬜ |
+| Round delay: `random.uniform(min, max)` seconds, behind `round_delay_enabled` flag | `core/match/engine.py` | ✅ Done |
+| Post-match sync: `match_characters.is_alive` → `owned_characters.is_alive`, set `last_match_id` | `core/match/engine.py` | ✅ Done |
 
 ---
 

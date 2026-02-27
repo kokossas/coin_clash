@@ -1,10 +1,11 @@
 # /home/ubuntu/coin_clash/core/match/engine.py
 
 import re
+import time
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 
-from backend.app.models.models import Character
+from backend.app.models.models import Character, OwnedCharacter
 from ..player.repository import PlayerRepo
 from ..player.character_repository import CharacterRepo
 from ..player.item_repository import ItemRepo
@@ -532,8 +533,12 @@ class MatchEngine:
 
         while len(self.alive_pool) > 1:
             self._run_round()
-            # Optional: Add delay for simulation visibility
-            # time.sleep(0.1)
+            if self.config.get("round_delay_enabled"):
+                delay = self.random.uniform(
+                    self.config.get("round_delay_min", 5.0),
+                    self.config.get("round_delay_max", 10.0),
+                )
+                time.sleep(delay)
 
         # --- Match End --- 
         winner = None
@@ -586,5 +591,18 @@ class MatchEngine:
         # Update match status and end time
         self.match_repo.update_match_status(self.match_id, "completed")
         self.match_repo.set_match_end_time(self.match_id)
+
+        # Sync match_characters → owned_characters
+        all_characters = list(self.alive_pool.values()) + list(self.dead_pool.values())
+        for char in all_characters:
+            if char.owned_character_id is not None:
+                owned = (
+                    self.character_repo.db.query(OwnedCharacter)
+                    .filter(OwnedCharacter.id == char.owned_character_id)
+                    .first()
+                )
+                if owned is not None:
+                    owned.is_alive = char.is_alive
+                    owned.last_match_id = self.match_id
 
         return winner, self.match_log
