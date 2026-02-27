@@ -1,190 +1,83 @@
 # Coin Clash
 
-Coin Clash is a backend game engine being transformed into a full-stack Web3 game through an incremental migration approach.
-
-## Project Overview
-
-Coin Clash is a multiplayer game where players purchase characters to enter matches, compete for survival, and earn rewards. The game features:
-
-- Character purchase and management
-- Match creation and participation
-- Real-time match simulation with various event types
-- Player statistics and rewards
-
-This repository contains the backend game engine and the ongoing migration to a modern API-based architecture with future blockchain integration capabilities.
-
-## Migration Status
-
-The project is currently in Phase 2 of an incremental migration plan:
-
-- ✅ Phase 1: Database migration from SQLite to PostgreSQL
-  - ✅ REST API implementation with FastAPI
-  - ✅ Authentication system with JWT
-  - ✅ Service layer abstraction
-  - ✅ Blockchain integration preparation
-
-- ✅ Phase 2: Blockchain Abstraction Layer (Current)
-  - ✅ Wallet interface and mock provider
-  - ✅ Payment interface and mock provider
-  - ✅ Transaction interface and mock provider
-  - ✅ Asset interface and mock provider
-  - ✅ Blockchain error handling and retry mechanisms
-  - ✅ Service factory for provider management
-
-- 🔄 Phase 3: Blockchain Integration (Next)
-  - 🔄 Polygon and Solana provider implementations
-  - 🔄 Smart contract integration
-  - 🔄 Frontend wallet connection
+Multiplayer survival game where players purchase characters, enter matches, compete through randomized events, and earn rewards. Being built toward a Web3 gambling platform with blockchain settlement.
 
 ## Project Structure
 
 ```
-/backend/
-  /app/
-    /api/           # API endpoints
-    /core/          # Core business logic
-    /crud/          # Database operations
-    /db/            # Database connection and models
-    /models/        # SQLAlchemy models
-    /schemas/       # Pydantic schemas
-    /services/      
-      /auth/        # Authentication services
-      /blockchain/  # Blockchain abstraction layer
-        /wallet/    # Wallet connection and verification
-        /payment/   # Deposits and withdrawals
-        /transaction/ # Blockchain transactions
-        /asset/     # Asset management (NFTs)
-      /payment/     # Payment processing
-    main.py         # FastAPI application
-  /tests/           # Test suite
-/core/              # Original game engine
-/scenarios/         # Game scenarios
-/tests/             # Original tests
+backend/        FastAPI application — API, ORM models (single source of truth), schemas, CRUD, services
+core/           Game engine — match simulation, repositories, scheduler, config/scenario loading
+scenarios/      JSON event scenario files (direct_kill, environmental, group, self, story, comeback)
+old/            Archived pre-migration PoC. Not imported by anything. Kept as reference.
+config.yaml     Game configuration (event weights, fees, protocol cut, player limits)
+docs/           PROJECT_STATUS.md (ground truth audit), PHASE_2.5_SPEC.md (next phase spec)
 ```
 
-## Getting Started
+### Backend Services
+
+```
+backend/app/services/
+  auth/           JWT authentication (base + provider)
+  blockchain/     Blockchain abstraction layer — wallet, payment, transaction, asset
+                  Each has abstract base + mock provider. Factory with singleton pattern.
+                  Error hierarchy + async retry with exponential backoff.
+  match_runner.py Wires core/ repos and drives MatchEngine
+```
+
+## Current State
+
+**Completed:**
+- Phase 1: PostgreSQL migration, FastAPI REST API, JWT auth scaffolding, service layer
+- Phase 2: Blockchain abstraction layer (all 4 interfaces + mocks + tests + retry + factory)
+- Pre-Phase 2.5 cleanup: player identity migration (wallet_address canonical), model consolidation, engine wiring
+
+**Next:** Phase 2.5 — character inventory, match lobbies, mock payments, round delays. See `docs/PHASE_2.5_SPEC.md`.
+
+**Known issues:** see `docs/PROJECT_STATUS.md` § "Known Broken Things"
+
+## Setup
 
 ### Prerequisites
 
 - Python 3.8+
 - PostgreSQL 13+
-- Docker and Docker Compose (optional)
-- pytest-asyncio (for running blockchain abstraction tests)
 
-### Installation
+### Install
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/kokossas/coin_clash.git
-   cd coin_clash
-   git checkout phase2_blockchain_abs
-   ```
-
-2. Install dependencies:
-   ```
-   pip install -r backend/requirements.txt
-   pip install pytest-asyncio  # Required for blockchain tests
-   ```
-
-3. Set up PostgreSQL:
-   ```
-   # Create a PostgreSQL database
-   createdb coin_clash
-   
-   # Or use Docker
-   docker-compose up -d postgres
-   ```
-
-4. Run database migrations:
-   ```
-   # Once Alembic is set up
-   alembic upgrade head
-   ```
-
-5. Start the API server:
-   ```
-   uvicorn backend.app.main:app --reload
-   ```
-
-### Running Tests
-
+```bash
+pip install -r backend/requirements.txt
 ```
-# Run all tests
-pytest backend/tests/
 
-# Run blockchain abstraction tests specifically
+### Database
+
+```bash
+createdb coin_clash
+```
+
+Set env vars (or use defaults in `backend/app/core/config.py`):
+```
+POSTGRES_SERVER=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=coin_clash
+POSTGRES_PORT=5432
+```
+
+### Run
+
+```bash
+uvicorn backend.app.main:app --reload
+```
+
+API docs at `http://localhost:8000/docs`
+
+### Tests
+
+```bash
+pytest backend/tests/
+```
+
+Note: some tests are currently broken (see `docs/PROJECT_STATUS.md`). Blockchain abstraction tests pass:
+```bash
 pytest backend/tests/services/blockchain/
 ```
-
-## Blockchain Abstraction Layer
-
-The blockchain abstraction layer provides a clean separation between game logic and blockchain implementations, allowing for:
-
-- Development and testing without actual blockchain dependencies
-- Support for multiple blockchain networks (Polygon, Solana)
-- Consistent error handling and retry mechanisms
-- Future extensibility for additional chains
-
-### Key Components
-
-- **Wallet Interface**: Connect to wallets, verify signatures, manage chain support
-- **Payment Interface**: Process deposits/withdrawals, check balances, estimate fees
-- **Transaction Interface**: Create and monitor blockchain transactions
-- **Asset Interface**: Create, transfer, and update blockchain assets (NFTs)
-
-### Mock Providers
-
-All interfaces include mock implementations that simulate blockchain behavior with:
-- Configurable network delays
-- Simulated transaction lifecycles
-- Realistic error scenarios
-- In-memory state management
-
-For detailed documentation, see [PHASE2_CHANGES.md](PHASE2_CHANGES.md).
-
-## API Documentation
-
-Once the server is running, API documentation is available at:
-
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## Development Roadmap
-
-The project is following an incremental migration approach:
-
-1. **Phase 1: Database and API Layer** (Completed)
-   - PostgreSQL migration
-   - REST API implementation
-   - Authentication system
-   - Service layer abstraction
-
-2. **Phase 2: Blockchain Abstraction Layer** (Current)
-   - Wallet interface and mock provider
-   - Payment interface and mock provider
-   - Transaction interface and mock provider
-   - Asset interface and mock provider
-   - Blockchain error handling and retry mechanisms
-
-3. **Phase 3: Blockchain Integration** (Next)
-   - Wallet integration
-   - Smart contract development
-   - Blockchain transaction monitoring
-   - Token management
-
-4. **Phase 4: Advanced Features**
-   - Tournament system
-   - Social features
-   - Marketplace integration
-   - Advanced analytics
-
-## Contributing
-
-1. Check the `TASK.md` file for current development tasks
-2. Create a feature branch from the current phase branch
-3. Implement your changes with tests
-4. Submit a pull request
-
-## License
-
-[License information]
