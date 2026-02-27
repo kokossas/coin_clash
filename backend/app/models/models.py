@@ -32,7 +32,7 @@ class Character(Base, BaseModel):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
     match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
     is_alive = Column(Boolean, default=True)
-    owned_character_id = Column(Integer, ForeignKey("owned_characters.id"), nullable=True)
+    owned_character_id = Column(Integer, ForeignKey("owned_characters.id", use_alter=True), nullable=True)
     entry_order = Column(Integer, nullable=False, default=0)
     elimination_round = Column(Integer, nullable=True)
 
@@ -55,7 +55,7 @@ class Match(Base, BaseModel):
     start_timer_end = Column(DateTime(timezone=True), nullable=True)
     start_timestamp = Column(DateTime(timezone=True))
     end_timestamp = Column(DateTime(timezone=True))
-    winner_character_id = Column(Integer, ForeignKey("characters.id"), nullable=True)
+    winner_character_id = Column(Integer, ForeignKey("characters.id", use_alter=True), nullable=True)
     status = Column(String, default="pending")  # pending, filling, active, completed, cancelled, failed
     
     # Blockchain-ready fields
@@ -137,7 +137,7 @@ class OwnedCharacter(Base, BaseModel):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
     character_name = Column(String(50), nullable=False)
     is_alive = Column(Boolean, default=True)
-    last_match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
+    last_match_id = Column(Integer, ForeignKey("matches.id", use_alter=True), nullable=True)
     revival_count = Column(Integer, default=0)
 
     __table_args__ = (
