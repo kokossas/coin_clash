@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 
 class MatchBase(BaseModel):
     entry_fee: float
@@ -9,9 +10,13 @@ class MatchBase(BaseModel):
     start_threshold: int
 
 class MatchCreate(MatchBase):
-    pass
+    creator_wallet_address: Optional[str] = None
+    min_players: int = 3
+    max_characters: int = 20
+    max_characters_per_player: int = 3
+    protocol_fee_percentage: Decimal = Decimal("10.0")
 
-class MatchUpdate(MatchBase):
+class MatchUpdate(BaseModel):
     entry_fee: Optional[float] = None
     kill_award_rate: Optional[float] = None
     start_method: Optional[str] = None
@@ -23,6 +28,12 @@ class MatchUpdate(MatchBase):
     status: Optional[str] = None
     blockchain_tx_id: Optional[str] = None
     blockchain_settlement_status: Optional[str] = None
+    creator_wallet_address: Optional[str] = None
+    min_players: Optional[int] = None
+    max_characters: Optional[int] = None
+    max_characters_per_player: Optional[int] = None
+    protocol_fee_percentage: Optional[Decimal] = None
+    countdown_started_at: Optional[datetime] = None
 
 class MatchInDBBase(MatchBase):
     id: int
@@ -34,7 +45,13 @@ class MatchInDBBase(MatchBase):
     created_at: datetime
     blockchain_tx_id: Optional[str] = None
     blockchain_settlement_status: Optional[str] = None
-    
+    creator_wallet_address: Optional[str] = None
+    min_players: int = 3
+    max_characters: int = 20
+    max_characters_per_player: int = 3
+    protocol_fee_percentage: Decimal = Decimal("10.0")
+    countdown_started_at: Optional[datetime] = None
+
     class Config:
         orm_mode = True
 

@@ -29,13 +29,13 @@
 
 | Task | Details | Files | Status |
 |------|---------|-------|--------|
-| New model: `OwnedCharacter` | Persistent character inventory (player_id, character_name, is_alive, last_match_id, revival_count) | `backend/app/models/models.py` | ⬜ |
-| New model: `MatchJoinRequest` | Audit trail for join attempts (match_id, player_id, entry_fee_total, payment_status) | `backend/app/models/models.py` | ⬜ |
-| New model: `MatchJoinRequestCharacter` | Junction table (join_request_id, owned_character_id) | `backend/app/models/models.py` | ⬜ |
-| New model: `PendingPayout` | Calculated payouts (match_id, player_id, payout_type, amount, settled_at) | `backend/app/models/models.py` | ⬜ |
-| Modify `Character` | Add `owned_character_id`, `entry_order`, `elimination_round` | `backend/app/models/models.py` | ⬜ |
-| Modify `Match` | Add lobby fields (creator_wallet_address, min/max players, protocol_fee_percentage, countdown_started_at); extend status values | `backend/app/models/models.py` | ⬜ |
-| Config additions | `character_base_price`, `character_revival_fee`, `listing_fee`, `round_delay_min`, `round_delay_max` | `config.yaml` | ⬜ |
+| New model: `OwnedCharacter` | Persistent character inventory (player_id, character_name, is_alive, last_match_id, revival_count) | `backend/app/models/models.py` | ✅ Done |
+| New model: `MatchJoinRequest` | Audit trail for join attempts (match_id, player_id, entry_fee_total, payment_status) | `backend/app/models/models.py` | ✅ Done |
+| New model: `MatchJoinRequestCharacter` | Junction table (join_request_id, owned_character_id) | `backend/app/models/models.py` | ✅ Done |
+| New model: `PendingPayout` | Calculated payouts (match_id, player_id, payout_type, amount, settled_at) | `backend/app/models/models.py` | ✅ Done |
+| Modify `Character` | Add `owned_character_id`, `entry_order`, `elimination_round` | `backend/app/models/models.py` | ✅ Done |
+| Modify `Match` | Add lobby fields (creator_wallet_address, min/max players, protocol_fee_percentage, countdown_started_at); extend status values | `backend/app/models/models.py` | ✅ Done |
+| Config additions | `character_base_price`, `character_revival_fee`, `listing_fee`, `round_delay_min`, `round_delay_max` | `config.yaml` | ✅ Done |
 
 ---
 
@@ -43,14 +43,14 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| Schemas for `OwnedCharacter` | `backend/app/schemas/owned_character.py` | ⬜ |
-| Schemas for `MatchJoinRequest` | `backend/app/schemas/match_join_request.py` | ⬜ |
-| Schemas for `PendingPayout` | `backend/app/schemas/pending_payout.py` | ⬜ |
-| Update `Match` schemas for lobby fields | `backend/app/schemas/match.py` | ⬜ |
-| Update `Character` schemas for new columns | `backend/app/schemas/character.py` | ⬜ |
-| CRUD for `OwnedCharacter` | `backend/app/crud/owned_character.py` | ⬜ |
-| CRUD for `MatchJoinRequest` | `backend/app/crud/match_join_request.py` | ⬜ |
-| CRUD for `PendingPayout` | `backend/app/crud/pending_payout.py` | ⬜ |
+| Schemas for `OwnedCharacter` | `backend/app/schemas/owned_character.py` | ✅ Done |
+| Schemas for `MatchJoinRequest` | `backend/app/schemas/match_join_request.py` | ✅ Done |
+| Schemas for `PendingPayout` | `backend/app/schemas/pending_payout.py` | ✅ Done |
+| Update `Match` schemas for lobby fields | `backend/app/schemas/match.py` | ✅ Done |
+| Update `Character` schemas for new columns | `backend/app/schemas/character.py` | ✅ Done |
+| CRUD for `OwnedCharacter` | `backend/app/crud/owned_character.py` | ✅ Done |
+| CRUD for `MatchJoinRequest` | `backend/app/crud/match_join_request.py` | ✅ Done |
+| CRUD for `PendingPayout` | `backend/app/crud/pending_payout.py` | ✅ Done |
 
 ---
 

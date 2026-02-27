@@ -51,3 +51,10 @@ lethal_modifiers:
   cap_8_plus: 0.10
   cap_12_plus: 0.20
 
+
+# Phase 2.5 — Character inventory & match lobby
+character_base_price: 1.0
+character_revival_fee: 0.5
+listing_fee: 0.1
+round_delay_min: 5.0
+round_delay_max: 10.0

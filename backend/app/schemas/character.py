@@ -7,19 +7,25 @@ class CharacterBase(BaseModel):
     player_id: int
 
 class CharacterCreate(CharacterBase):
-    pass
+    owned_character_id: Optional[int] = None
 
 class CharacterUpdate(BaseModel):
     name: Optional[str] = None
     player_id: Optional[int] = None
     match_id: Optional[int] = None
     is_alive: Optional[bool] = None
+    owned_character_id: Optional[int] = None
+    entry_order: Optional[int] = None
+    elimination_round: Optional[int] = None
 
 class CharacterInDBBase(CharacterBase):
     id: int
     match_id: Optional[int] = None
     is_alive: bool
     created_at: datetime
+    owned_character_id: Optional[int] = None
+    entry_order: int = 0
+    elimination_round: Optional[int] = None
 
     class Config:
         orm_mode = True
