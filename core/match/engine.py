@@ -367,7 +367,7 @@ class MatchEngine:
         two_remain = len(self.alive_pool) == 2
 
         # 1. Primary Event
-        primary_weights = self.config["primary_event_weights"]
+        primary_weights = self.config.primary_event_weights
         allowed_primary_events = list(primary_weights.keys())
         if two_remain:
             # Remove group eliminations if only 2 remain
@@ -402,10 +402,10 @@ class MatchEngine:
             return
 
         # 2. Additional Events (checked independently)
-        extra_config = self.config["extra_events"]
+        extra_config = self.config.extra_events
 
         # 2a. Extra Non-Lethal Story
-        if self.random.random() < extra_config["non_lethal_story_chance"]:
+        if self.random.random() < extra_config.non_lethal_story_chance:
             logger.debug(
             "extra_non_lethal_story_triggered",
             extra={"match_id": self.match_id, "round": self.round_number}
@@ -415,11 +415,11 @@ class MatchEngine:
 
         # 2b. Extra Lethal
         if not two_remain: # Cannot occur if only 2 remain
-            lethal_chance = extra_config["extra_lethal_base_chance"]
+            lethal_chance = extra_config.extra_lethal_base_chance
             if len(self.alive_pool) > 12:
-                lethal_chance += self.config["lethal_modifiers"]["cap_12_plus"]
+                lethal_chance += self.config.lethal_modifiers.cap_12_plus
             elif len(self.alive_pool) > 8:
-                lethal_chance += self.config["lethal_modifiers"]["cap_8_plus"]
+                lethal_chance += self.config.lethal_modifiers.cap_8_plus
             
             if self.random.random() < lethal_chance:
                 logger.debug(
@@ -431,7 +431,7 @@ class MatchEngine:
 
         # 2c. Comeback
         if self.dead_pool: # Cannot occur if dead pool is empty
-            if self.random.random() < extra_config["comeback_base_chance"]:
+            if self.random.random() < extra_config.comeback_base_chance:
                 logger.debug(
                 "extra_comeback_triggered",
                 extra={"match_id": self.match_id, "round": self.round_number}
@@ -466,10 +466,10 @@ class MatchEngine:
 
         while len(self.alive_pool) > 1:
             self._run_round()
-            if self.config.get("round_delay_enabled"):
+            if self.config.round_delay_enabled:
                 delay = self.random.uniform(
-                    self.config.get("round_delay_min", 5.0),
-                    self.config.get("round_delay_max", 10.0),
+                    self.config.round_delay_min,
+                    self.config.round_delay_max,
                 )
                 time.sleep(delay)
 

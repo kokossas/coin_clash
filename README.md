@@ -10,7 +10,7 @@ core/           Game engine — match simulation, repositories, scheduler, confi
 scenarios/      JSON event scenario files (direct_kill, environmental, group, self, story, comeback)
 scripts/        Dev tools (match simulator)
 old/            Archived pre-migration PoC. Not imported by anything. Kept as reference.
-config.yaml     Game configuration (event weights, fees, player limits, round delays)
+config.yaml     Game configuration (event weights, fees, player limits, round delays). Loaded as typed GameConfig model.
 docs/           PROJECT_STATUS.md (ground truth audit), PHASE_2.5_SPEC.md (next phase spec)
 ```
 
@@ -18,7 +18,7 @@ docs/           PROJECT_STATUS.md (ground truth audit), PHASE_2.5_SPEC.md (next 
 
 ```
 backend/app/services/
-  auth/           JWT authentication (base + provider)
+  auth/           Wallet-signature auth (challenge/verify flow, JWT tokens, get_current_player dependency)
   blockchain/     Blockchain abstraction layer — wallet, payment, transaction, asset
                   Each has abstract base + mock provider. Factory with singleton pattern.
                   Error hierarchy + async retry with exponential backoff.
@@ -37,8 +37,10 @@ backend/app/services/
 - Pre-Phase 2.5 cleanup: player identity migration (wallet_address canonical), model consolidation, engine wiring
 - Phase 2.5 Steps 0–8: tech debt, DB models, schemas/CRUD, CharacterInventoryService, MatchLobbyService, payout calculation, engine changes, API endpoints, background tasks
 - Game economy completion: tiered protocol fees (per-join, from config.yaml), SettlementService (auto + manual), match results endpoint
+- Phase 3: Wallet-signature auth (challenge/verify), `get_current_player` dependency, protected endpoints, player auto-creation on first auth
+- Config consolidation: typed `GameConfig` model, single source of truth for game values, dead pydantic-settings game values removed
 
-**Next:** Phase 3 — Auth / wallet signature verification. See `docs/PROJECT_STATUS.md`.
+**Next:** See `docs/PROJECT_STATUS.md`.
 
 **Known issues:** see `docs/PROJECT_STATUS.md` § "Known Issues"
 

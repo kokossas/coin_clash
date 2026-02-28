@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Dict
 
 from pydantic import BaseModel
 
@@ -45,9 +45,4 @@ class GameConfig(BaseModel):
     round_delay_min: float = 5.0
     round_delay_max: float = 10.0
 
-    # Allow dict-style access for backward compat with MatchEngine and scripts
-    def __getitem__(self, key: str) -> Any:
-        return getattr(self, key)
 
-    def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)

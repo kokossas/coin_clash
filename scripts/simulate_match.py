@@ -175,7 +175,7 @@ def main() -> None:
     config = load_config()
 
     parser = argparse.ArgumentParser(description="Simulate a match")
-    parser.add_argument("--players", type=int, default=config["num_players_default"])
+    parser.add_argument("--players", type=int, default=config.num_players_default)
     parser.add_argument("--chars-per-player", type=int, default=1)
     parser.add_argument(
         "--char-distribution",
@@ -183,8 +183,8 @@ def main() -> None:
         default=None,
         help="Comma-separated chars per player, e.g. '3,1,2,1'. Overrides --players and --chars-per-player.",
     )
-    parser.add_argument("--entry-fee", type=float, default=config["default_fee"])
-    parser.add_argument("--kill-award-rate", type=float, default=config["kill_award_rate_default"])
+    parser.add_argument("--entry-fee", type=float, default=config.default_fee)
+    parser.add_argument("--kill-award-rate", type=float, default=config.kill_award_rate_default)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -195,7 +195,7 @@ def main() -> None:
         num_players = args.players
         chars_per_player_list = [args.chars_per_player] * num_players
 
-    scenarios = load_scenarios(config["scenario_dir"])
+    scenarios = load_scenarios(config.scenario_dir)
 
     match = SimMatch(match_id=1, entry_fee=args.entry_fee, kill_award_rate=args.kill_award_rate)
     players, chars = build_participants(chars_per_player_list)
@@ -242,7 +242,7 @@ def main() -> None:
     protocol_fee = compute_protocol_fee(
         chars_per_player_list=chars_per_player_list,
         entry_fee=args.entry_fee,
-        fee_tiers=config["protocol_fee_tiers"],
+        fee_tiers=config.protocol_fee_tiers,
     )
 
     result = calculate_payouts(

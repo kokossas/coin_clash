@@ -7,7 +7,7 @@ from ..config.config_loader import load_config
 logger = logging.getLogger(__name__)
 
 config = load_config()
-SCENARIO_DIR = config["scenario_dir"]
+SCENARIO_DIR = config.scenario_dir
 
 # Define expected scenario categories based on config/logic
 EXPECTED_CATEGORIES = [

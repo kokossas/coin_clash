@@ -14,7 +14,7 @@ backend/      FastAPI application. Single source of truth for ORM models, schema
               Imports core/ for match execution (via backend/app/services/match_runner.py).
 scripts/      Dev tools. Match simulator (no DB required).
 scenarios/    JSON scenario files consumed by core/match/scenario_loader.py.
-config.yaml   Game config (event weights, fees, player limits, round delays, character pricing).
+config.yaml   Game config (event weights, fees, player limits, round delays, character pricing). Loaded as typed GameConfig model via core/config/config_loader.py.
 ```
 
 ## Database
@@ -68,7 +68,9 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 - **Payout calculator** (`backend/app/services/payout_calculator.py`): pure payout math extracted from MatchLobbyService — no DB/ORM dependency. Used by both the service (DB wrapper) and the simulator.
 - **Match simulator** (`scripts/simulate_match.py`): CLI dev tool. Runs MatchEngine with in-memory stubs, real scenarios/config, computes payouts via payout_calculator. Supports uniform (`--chars-per-player`) and mixed (`--char-distribution 3,1,2,1`) character distributions with per-player tiered protocol fees.
 - **SettlementService** (`backend/app/services/settlement.py`): iterates unsettled pending_payouts, calls PaymentProvider.process_withdrawal, marks settled. Auto-triggered post-match; manual endpoint as fallback.
-- **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions, Phase 2.5 endpoints (character purchase/inventory/revive, match create/open/join/events/status, player profile/match-history), match results endpoint, manual settle endpoint, `TaskScheduler` started on app lifespan
+- **FastAPI app**: CORS, wallet-signature auth (challenge/verify + `get_current_player` dependency), protected mutating endpoints, CRUD endpoints for players/characters/matches/transactions, Phase 2.5 endpoints (character purchase/inventory/revive, match create/open/join/events/status, player profile/match-history), match results endpoint, manual settle endpoint, `TaskScheduler` started on app lifespan
+- **Auth flow** (`backend/app/services/auth/`): `POST /auth/challenge` issues nonce, `POST /auth/verify` verifies wallet signature via `WalletProvider`, auto-creates Player if new wallet, returns JWT with `wallet_address` + `player_id`. `get_current_player` dependency extracts JWT and resolves to `Player` DB row. Mutating endpoints (create/join/settle match, purchase/revive character, update player, profile) are protected. Read-only endpoints (open matches, match status/results/events, match history) remain public.
+- **Config consolidation** (`core/config/game_config.py`): typed `GameConfig` pydantic model loaded from `config.yaml`. `load_config()` returns `GameConfig` instead of raw dict. All consumers use attribute access. Dead game values (`DEFAULT_FEE`, `KILL_AWARD_RATE_DEFAULT`) removed from pydantic `Settings`.
 - **Scenario files**: 6 JSON files in `scenarios/` (comeback, direct_kill, environmental, group, self, story)
 
 ## Implementation Decisions
@@ -81,20 +83,23 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 | 4 | `MatchCreate` schema | Added `status` field (default `"pending"`) so `create_match_lobby` can set `"filling"`. |
 | 5 | `CharacterCreate` schema | Added `match_id` and `entry_order` for `join_match` Character row creation. |
 | 6 | `create_with_characters` atomicity | Changed from `commit`+`refresh` to `flush` so `join_match` controls the transaction boundary. |
-| 7 | Auth for new endpoints | No auth — player identity via request body/path params, consistent with existing endpoints. Auth is Phase 3. |
+| 7 | Auth for endpoints | Wallet-signature auth implemented (Phase 3). `get_current_player` dependency protects mutating endpoints. Player identity derived from JWT, no longer passed in request bodies. |
 | 8 | `MatchEvent` schema/CRUD | Added `backend/app/schemas/match_event.py` and `backend/app/crud/match_event.py` for the events polling endpoint. |
 | 9 | `TaskScheduler` lifecycle | Started/stopped via FastAPI lifespan handler in `main.py`. Countdown scheduling and round delay were already wired in Steps 4–6. |
 | 10 | Protocol fee model | Replaced flat `protocol_fee_percentage` on Match with per-join `protocol_fee` on MatchJoinRequest. Tiered rates (1→10%, 2→8%, 3→6%) from `config.yaml`. Calculated at join time for auditability. |
 | 11 | Settlement strategy | Auto-settlement after payout calculation in match_runner. Failure doesn't fail the match — payouts stay unsettled, retryable via `POST /matches/{id}/settle`. |
 | 12 | Match results endpoint | `GET /matches/{id}/results` aggregates winner, per-player kills (from MatchEvent), and payout breakdown (including settlement status). |
+| 13 | Auth flow | Wallet-signature challenge/verify. Nonce stored in-memory on `JWTAuthProvider` (matches mock-provider pattern). Production would use Redis/DB with TTL. |
+| 14 | JWT payload | `sub` = `wallet_address`, `player_id` = int. `get_current_player` resolves JWT → `Player` DB row. |
+| 15 | Player auto-creation | `POST /auth/verify` creates Player row if wallet_address not in DB. |
+| 16 | Endpoint protection | Mutating endpoints (create/join/settle, purchase/revive, update player, profile) require Bearer token. Read-only public endpoints unchanged. Generic CRUD endpoints left unprotected (admin concern, out of scope). |
+| 17 | player_id in request bodies | Removed from `JoinMatchRequest`, `PurchaseRequest`, `ReviveRequest`, `CreateLobbyRequest`. Derived from JWT via `get_current_player`. |
+| 18 | Config consolidation | Typed `GameConfig` pydantic model. All consumers (`MatchEngine`, scripts, backend services) use attribute access. |
 
 ## Known Issues
 
-### Dual config systems with conflicting values
-- `backend/app/core/config.py` (pydantic-settings, env-var driven): `KILL_AWARD_RATE_DEFAULT = 0.5`
-- `config.yaml` (YAML, loaded by `core/config/config_loader.py`): `kill_award_rate_default: 0.1`
-- They don't cross paths today — engine reads YAML only, FastAPI Settings used for infra/DB only — but it's a latent source-of-truth conflict.
-- Consolidating config systems is an architectural decision outside Phase 2.5 scope.
+### ~~Dual config systems with conflicting values~~ (Resolved)
+- Resolved: typed `GameConfig` model (`core/config/game_config.py`) is now the single source of truth for game values. `load_config()` returns `GameConfig` instead of `Dict[str, Any]`. Dead game values (`DEFAULT_FEE`, `KILL_AWARD_RATE_DEFAULT`) removed from pydantic `Settings`. Infra config (DB, JWT, CORS) remains in pydantic-settings as intended.
 
 ### SUI naming throughout codebase
 - Rename done: `total_earnings` / `add_earnings` in model + repo, `currency="USDC"` in tests.
