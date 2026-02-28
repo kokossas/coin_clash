@@ -189,7 +189,7 @@ class MatchEngine:
                             "event_type": "direct_kill"
                         }
                     )
-                    self.player_repo.add_sui_earned(player.id, award)
+                    self.player_repo.add_earnings(player.id, award)
 
     def _handle_self_event(self, participants: List[Character]):
         # [A] kills themself
@@ -479,13 +479,9 @@ class MatchEngine:
         num_participants = len(self.participants)
         total_entry_fees = num_participants * self.entry_fee
 
-        # Protocol Cut: Needs chars_per_player info. Assume default for now.
-        # This is tricky because config is per-player purchase, not per match.
-        # Let's estimate based on average or default? Or maybe store total cut during setup?
-        # Simplification: Use the cut for 1 character purchase as a placeholder.
-        # TODO: Refine protocol cut calculation based on actual purchase data if available.
-        protocol_cut_rate = self.config["protocol_cut"].get("1", 0.10) # Default to 10% if not found
-        protocol_cut_amount = total_entry_fees * protocol_cut_rate
+        # Protocol fee from per-match setting
+        protocol_fee_rate = float(self.match.protocol_fee_percentage) / 100.0
+        protocol_cut_amount = total_entry_fees * protocol_fee_rate
 
         prize_pool_before_kills = total_entry_fees - protocol_cut_amount
 
@@ -572,7 +568,7 @@ class MatchEngine:
                             "amount": winner_payout
                         }
                     )
-                    self.player_repo.add_sui_earned(winner_player.id, winner_payout)
+                    self.player_repo.add_earnings(winner_player.id, winner_payout)
                     self.player_repo.update_player_balance(winner_player.id, winner_payout) # Add to balance
 
             # Update match record in DB

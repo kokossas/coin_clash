@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
@@ -25,8 +25,7 @@ class MatchJoinRequestInDBBase(MatchJoinRequestBase):
     created_at: datetime
     confirmed_at: Optional[datetime] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MatchJoinRequest(MatchJoinRequestInDBBase):

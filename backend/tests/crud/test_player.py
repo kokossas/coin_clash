@@ -17,7 +17,7 @@ def test_create_player(db_session: Session):
     assert player.balance == 0.0
     assert player.wins == 0
     assert player.kills == 0
-    assert player.total_sui_earned == 0.0
+    assert player.total_earnings == 0.0
 
 
 def test_create_player_auto_username(db_session: Session):

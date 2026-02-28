@@ -147,5 +147,5 @@ class PlayerService:
             "balance": player.balance,
             "wins": player.wins,
             "kills": player.kills,
-            "total_earnings": player.total_sui_earned
+            "total_earnings": player.total_earnings
         }

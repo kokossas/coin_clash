@@ -16,7 +16,7 @@ class Player(Base, BaseModel):
     balance = Column(Float, default=0.0)
     wins = Column(Integer, default=0)
     kills = Column(Integer, default=0)
-    total_sui_earned = Column(Float, default=0.0)
+    total_earnings = Column(Float, default=0.0)
     wallet_chain_id = Column(String, nullable=True)
 
     characters = relationship("Character", back_populates="player_owner")

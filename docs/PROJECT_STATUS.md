@@ -28,12 +28,16 @@ config.yaml   Game config (event weights, fees, protocol cut). Also contains leg
 | Model | Key Fields |
 |-------|-----------|
 | Player | id (PK), wallet_address (unique, non-null), username (nullable), balance, wins, kills, total_sui_earned, wallet_chain_id |
-| Character | id (PK), name, player_id (FK→players.id), match_id (FK→matches.id, nullable), is_alive |
-| Match | id (PK), entry_fee, kill_award_rate, start_method, start_threshold, start_timer_end, start_timestamp, end_timestamp, winner_character_id, status, blockchain_tx_id, blockchain_settlement_status |
+| Character | id (PK), name, player_id (FK→players.id), match_id (FK→matches.id, nullable), is_alive, owned_character_id (FK→owned_characters.id), entry_order, elimination_round |
+| Match | id (PK), entry_fee, kill_award_rate, start_method, start_threshold, start_timer_end, start_timestamp, end_timestamp, winner_character_id, status, blockchain_tx_id, blockchain_settlement_status, creator_wallet_address, min_players, max_characters, max_characters_per_player, protocol_fee_percentage, countdown_started_at |
 | MatchEvent | id (PK), match_id, round_number, event_type, scenario_source, scenario_text, affected_character_ids |
 | Item | id (PK), name, type, rarity, description, on_find_hook_info, on_award_hook_info, token_id, token_uri |
 | PlayerItem | player_id+item_id (composite PK), quantity |
 | Transaction | id (PK), player_id, amount, currency, tx_type, status, provider, provider_tx_id |
+| OwnedCharacter | id (PK), player_id (FK→players.id), character_name, is_alive, last_match_id (FK→matches.id), revival_count |
+| MatchJoinRequest | id (PK), match_id (FK→matches.id), player_id (FK→players.id), entry_fee_total, payment_status, confirmed_at |
+| MatchJoinRequestCharacter | join_request_id+owned_character_id (composite PK) |
+| PendingPayout | id (PK), match_id (FK→matches.id), player_id (FK→players.id), payout_type, amount, currency, calculated_at, settled_at, settlement_tx_hash |
 
 Player identity: `wallet_address` is canonical (non-null, unique). `username` is display-only, auto-assigned as `Player_{wallet_address[:6]}` if null.
 
@@ -62,22 +66,24 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 - **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions
 - **Scenario files**: 6 JSON files in `scenarios/` (comeback, direct_kill, environmental, group, self, story)
 
-## Known Broken Things
+## Known Issues
 
-### Tests not updated after identity migration
-- `backend/tests/conftest.py`: `test_player` fixture creates `Player` without `wallet_address` (non-null column) — will fail
-- `backend/tests/conftest.py`: `test_character` fixture uses `owner_username=test_player.username` — column doesn't exist
-- `backend/tests/api/test_characters.py`: sends `owner_username` in create payload, asserts `owner_username` in responses
-- `backend/tests/crud/test_character.py`: creates `CharacterCreate` with `owner_username`, calls `get_by_owner_username` (method doesn't exist)
+### Dual config systems with conflicting values
+- `backend/app/core/config.py` (pydantic-settings, env-var driven): `KILL_AWARD_RATE_DEFAULT = 0.5`
+- `config.yaml` (YAML, loaded by `core/config/config_loader.py`): `kill_award_rate_default: 0.1`
+- They don't cross paths today — engine reads YAML only, FastAPI Settings used for infra/DB only — but it's a latent source-of-truth conflict.
+- Consolidating config systems is an architectural decision outside Phase 2.5 scope.
 
-### Schema bug
-- `backend/app/schemas/match.py` `MatchInDBBase`: `start_timestamp: datetime` and `end_timestamp: datetime` are required fields, but these columns are null until match starts/ends. Any match read before completion will fail Pydantic validation. Fix: make both `Optional[datetime]`.
+### SUI naming throughout codebase
+- `Player.total_sui_earned` column, `add_sui_earned()` repo method, schema fields, engine calls — all reference "SUI" but project uses USDC.
+- Test fixtures also hardcode `currency="SUI"`.
+- Pending rename to `total_earnings` / `add_earnings`.
 
-### Missing dependency
-- `pydantic-settings` not in `backend/requirements.txt`. `backend/app/core/config.py` imports `from pydantic_settings import BaseSettings` — install will fail in clean env.
+### Engine payout issues
+- `_handle_direct_kill` pays kill awards immediately via `add_sui_earned`. `_calculate_payouts` re-estimates them at match end. Double-counting.
+- `_calculate_payouts` reads `config["protocol_cut"]["1"]` (tiered YAML config) instead of `Match.protocol_fee_percentage` (per-match column defined in Phase 2.5 spec).
 
-### Code issues
-- `CharacterService.purchase_character` (`core/player/service.py`): takes `username: str` param, calls `get_player_by_username`. Should take `player_id: int` or `wallet_address: str` to match the new identity model.
-- `core/common/utils.py`: `get_next_character_name()` defined twice (second shadows first). Both use module-level global counters that reset on process restart and aren't shared across workers.
-- `backend/app/services/payment/`: redundant simple mock (player_id-based, no state tracking). The canonical mock is `backend/app/services/blockchain/payment/mock_provider.py` (wallet_address-based, balance tracking, tx history, configurable delays/failures). Nothing imports the simple mock.
-- `config.yaml` + `core/config/config_loader.py`: `database_url` is a required key in the loader but the value (`sqlite:///data/coin_clash.db`) is legacy. Backend doesn't use it. Removing the key requires also removing it from `required_keys` in the loader.
+### Minor issues
+- `core/match/event_repository.py`: `.order_by(MatchEvent.timestamp)` — column doesn't exist, should be `.created_at`.
+- `core/player/character_repository.py`: `character.is_alive = 1 if is_alive else 0` — sets int on Boolean column.
+- `backend/app/schemas/match_join_request.py`, `pending_payout.py`: use Pydantic v1 `orm_mode = True` while all other schemas use v2 `ConfigDict(from_attributes=True)`.

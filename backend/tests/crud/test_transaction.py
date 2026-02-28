@@ -8,7 +8,7 @@ from app.models.models import Transaction
 def test_create_transaction(db_session: Session):
     player_id = 1
     amount = 25.0
-    currency = "SUI"
+    currency = "USDC"
     tx_type = "deposit"
     status = "pending"
     provider = "mock"

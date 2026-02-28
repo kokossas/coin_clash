@@ -24,7 +24,7 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
             "kill_award_rate_min", "kill_award_rate_default", "kill_award_rate_max",
             "num_players_min", "num_players_default", "num_players_max",
             "chars_per_player_min", "chars_per_player_max",
-            "protocol_cut", "primary_event_weights", "extra_events", "lethal_modifiers",
+            "primary_event_weights", "extra_events", "lethal_modifiers",
             "scenario_dir",
         ]
         for key in required_keys:

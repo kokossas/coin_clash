@@ -51,7 +51,7 @@ def test_player(db_session):
         balance=100.0,
         wins=5,
         kills=10,
-        total_sui_earned=50.0
+        total_earnings=50.0
     )
     db_session.add(player)
     db_session.commit()
@@ -92,7 +92,7 @@ def test_transaction(db_session, test_player):
     transaction = Transaction(
         player_id=test_player.id,
         amount=10.0,
-        currency="SUI",
+        currency="USDC",
         tx_type="deposit",
         status="completed",
         provider="mock"

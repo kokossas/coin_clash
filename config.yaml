@@ -26,12 +26,6 @@ num_players_max: 50
 chars_per_player_min: 1
 chars_per_player_max: 3
 
-# Protocol cut tiers
-protocol_cut:
-  "1": 0.10
-  "2": 0.08
-  "3": 0.06
-
 # Event weights
 primary_event_weights:
   direct_kill: 50

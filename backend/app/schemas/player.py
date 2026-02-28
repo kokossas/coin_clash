@@ -14,7 +14,7 @@ class PlayerUpdate(BaseModel):
     balance: Optional[float] = None
     wins: Optional[int] = None
     kills: Optional[int] = None
-    total_sui_earned: Optional[float] = None
+    total_earnings: Optional[float] = None
     wallet_address: Optional[str] = None
     wallet_chain_id: Optional[str] = None
 
@@ -23,7 +23,7 @@ class PlayerInDBBase(PlayerBase):
     balance: float
     wins: int
     kills: int
-    total_sui_earned: float
+    total_earnings: float
     created_at: datetime
     wallet_chain_id: Optional[str] = None
 

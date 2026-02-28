@@ -93,7 +93,7 @@ class SqlCharacterRepo(CharacterRepo):
     def update_character_status(self, character_id: int, is_alive: bool) -> Optional[Character]:
         character = self.get_character_by_id(character_id)
         if character:
-            character.is_alive = 1 if is_alive else 0
+            character.is_alive = is_alive
         return character
 
     def assign_character_to_match(self, character_id: int, match_id: int) -> Optional[Character]:

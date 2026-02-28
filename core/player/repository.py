@@ -32,7 +32,7 @@ class PlayerRepo(BaseRepo):
     def add_kill(self, player_id: int) -> Optional[Player]:
         pass
 
-    def add_sui_earned(self, player_id: int, amount: float) -> Optional[Player]:
+    def add_earnings(self, player_id: int, amount: float) -> Optional[Player]:
         pass
 
     def get_player_inventory(self, player_id: int) -> List[PlayerItem]:
@@ -91,10 +91,10 @@ class SqlPlayerRepo(PlayerRepo):
             player.kills += 1
         return player
 
-    def add_sui_earned(self, player_id: int, amount: float) -> Optional[Player]:
+    def add_earnings(self, player_id: int, amount: float) -> Optional[Player]:
         player = self.db.query(Player).filter(Player.id == player_id).first()
         if player:
-            player.total_sui_earned += amount
+            player.total_earnings += amount
         return player
 
     def get_player_inventory(self, player_id: int) -> List[PlayerItem]:

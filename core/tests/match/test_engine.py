@@ -14,12 +14,13 @@ from core.common.exceptions import CriticalMatchError
 # ---------------------------------------------------------------------------
 
 class StubMatch:
-    def __init__(self, match_id=1, entry_fee=1.0, kill_award_rate=0.1):
+    def __init__(self, match_id=1, entry_fee=1.0, kill_award_rate=0.1, protocol_fee_percentage=10.0):
         self.id = match_id
         self.entry_fee = entry_fee
         self.kill_award_rate = kill_award_rate
         self.status = "pending"
         self.winner_character_id = None
+        self.protocol_fee_percentage = protocol_fee_percentage
 
 
 class StubPlayer:
@@ -28,7 +29,7 @@ class StubPlayer:
         self.username = username
         self.wins = 0
         self.kills = 0
-        self.total_sui_earned = 0.0
+        self.total_earnings = 0.0
         self.balance = 0.0
 
 
@@ -99,10 +100,10 @@ class StubPlayerRepo:
             p.wins += 1
         return p
 
-    def add_sui_earned(self, player_id, amount):
+    def add_earnings(self, player_id, amount):
         p = self._players.get(player_id)
         if p:
-            p.total_sui_earned += amount
+            p.total_earnings += amount
         return p
 
     def update_player_balance(self, player_id, amount):
@@ -155,7 +156,6 @@ MINIMAL_CONFIG = {
         "comeback_base_chance": 0.0,
     },
     "lethal_modifiers": {"cap_8_plus": 0.10, "cap_12_plus": 0.20},
-    "protocol_cut": {"1": 0.10, "2": 0.08, "3": 0.06},
     "round_delay_enabled": False,
     "round_delay_min": 0.01,
     "round_delay_max": 0.02,

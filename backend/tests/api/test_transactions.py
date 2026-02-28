@@ -26,7 +26,7 @@ def test_create_transaction():
         json={
             "player_id": player["id"],
             "amount": 25.0,
-            "currency": "SUI",
+            "currency": "USDC",
             "tx_type": "deposit",
             "status": "pending",
             "provider": "mock"
@@ -36,7 +36,7 @@ def test_create_transaction():
     data = response.json()
     assert data["player_id"] == player["id"]
     assert data["amount"] == 25.0
-    assert data["currency"] == "SUI"
+    assert data["currency"] == "USDC"
 
 
 def test_read_transaction_not_found():

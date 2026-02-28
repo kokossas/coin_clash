@@ -58,4 +58,4 @@ class SqlEventRepo(EventRepo):
         return db_event
 
     def get_events_for_match(self, match_id: int) -> List[MatchEvent]:
-        return self.db.query(MatchEvent).filter(MatchEvent.match_id == match_id).order_by(MatchEvent.timestamp).all()
+        return self.db.query(MatchEvent).filter(MatchEvent.match_id == match_id).order_by(MatchEvent.created_at).all()

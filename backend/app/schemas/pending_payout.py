@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
@@ -27,8 +27,7 @@ class PendingPayoutInDBBase(PendingPayoutBase):
     settled_at: Optional[datetime] = None
     settlement_tx_hash: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PendingPayout(PendingPayoutInDBBase):
