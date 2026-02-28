@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 import logging
 from ..config.config_loader import load_config
 
@@ -86,7 +86,7 @@ def load_scenarios(scenario_dir: str = SCENARIO_DIR) -> Dict[str, List[Dict[str,
                                 "expected": "list"
                             }
                         )
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 logger.error(
                     "scenario_json_decode_error",
                     exc_info=True,
@@ -94,7 +94,7 @@ def load_scenarios(scenario_dir: str = SCENARIO_DIR) -> Dict[str, List[Dict[str,
                         "filepath": filepath
                     }
                 )
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "scenario_file_read_error",
                     exc_info=True,
@@ -125,7 +125,7 @@ def load_scenarios(scenario_dir: str = SCENARIO_DIR) -> Dict[str, List[Dict[str,
             }
         )
         return {category: [] for category in EXPECTED_CATEGORIES} # Return empty structure
-    except Exception as e:
+    except Exception:
         logger.error(
             "scenario_loader_unexpected_error",
             exc_info=True

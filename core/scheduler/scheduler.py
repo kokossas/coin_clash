@@ -8,7 +8,7 @@ import threading
 import time
 import datetime
 import heapq
-from typing import Callable, Dict, List, Any, Optional, Tuple
+from typing import Callable, Dict, Tuple
 from ..common.exceptions import SchedulerError
 
 logger = logging.getLogger(__name__)

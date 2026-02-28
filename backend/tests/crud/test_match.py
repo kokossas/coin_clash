@@ -1,8 +1,7 @@
-import pytest
 from sqlalchemy.orm import Session
 
 from app.crud.match import crud_match
-from app.schemas.match import MatchCreate, MatchUpdate
+from app.schemas.match import MatchCreate
 from app.models.models import Match
 
 def test_create_match(db_session: Session):

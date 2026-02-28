@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 import uuid
-import time
 from datetime import datetime
 from ..errors import TemporaryBlockchainError, PermanentBlockchainError
 from .base import TransactionProvider

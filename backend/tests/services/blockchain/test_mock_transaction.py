@@ -1,7 +1,5 @@
 import asyncio
 import pytest
-from unittest.mock import patch, MagicMock
-from backend.app.services.blockchain.transaction.base import TransactionProvider
 from backend.app.services.blockchain.transaction.mock_provider import MockTransactionProvider
 from backend.app.services.blockchain.errors import TemporaryBlockchainError, PermanentBlockchainError
 

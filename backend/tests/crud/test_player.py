@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy.orm import Session
 
 from app.crud.player import crud_player

@@ -7,7 +7,7 @@ from ....schemas.token import Token
 from ....services.auth.jwt_provider import JWTAuthProvider
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/v1/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 auth_provider = JWTAuthProvider()
 
 @router.post("/token", response_model=Token)

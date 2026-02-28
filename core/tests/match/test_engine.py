@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from core.match.engine import MatchEngine
-from core.common.exceptions import CriticalMatchError
 
 
 # ---------------------------------------------------------------------------

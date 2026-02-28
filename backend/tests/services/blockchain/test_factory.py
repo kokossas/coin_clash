@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch, MagicMock
 from backend.app.services.blockchain.factory import BlockchainServiceFactory
 from backend.app.services.blockchain.wallet.mock_provider import MockWalletProvider
 from backend.app.services.blockchain.payment.mock_provider import MockPaymentProvider

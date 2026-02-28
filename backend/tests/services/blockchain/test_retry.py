@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from backend.app.services.blockchain.errors import BlockchainError, TemporaryBlockchainError, PermanentBlockchainError, BlockchainErrorType
+from backend.app.services.blockchain.errors import TemporaryBlockchainError, PermanentBlockchainError
 from backend.app.services.blockchain.retry import retry_async_operation
 
 @pytest.mark.asyncio

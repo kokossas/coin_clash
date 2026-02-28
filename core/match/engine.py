@@ -11,8 +11,7 @@ from ..player.character_repository import CharacterRepo
 from ..player.item_repository import ItemRepo
 from .repository import MatchRepo
 from .event_repository import EventRepo
-from ..config.config_loader import load_config
-from .scenario_loader import load_scenarios, EVENT_TYPE_TO_CATEGORY
+from .scenario_loader import EVENT_TYPE_TO_CATEGORY
 from ..common.utils import SeedableRandom
 from ..common.exceptions import InsufficientParticipantsError, CriticalMatchError, SkipEvent
 

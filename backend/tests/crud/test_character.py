@@ -1,8 +1,7 @@
-import pytest
 from sqlalchemy.orm import Session
 
 from app.crud.character import crud_character
-from app.schemas.character import CharacterCreate, CharacterUpdate
+from app.schemas.character import CharacterCreate
 from app.models.models import Character
 
 

@@ -2,8 +2,7 @@
 Event repository implementation for database operations related to match events.
 """
 
-from typing import List, Optional
-from sqlalchemy.orm import Session
+from typing import List
 
 from abc import abstractmethod
 

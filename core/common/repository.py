@@ -2,8 +2,8 @@
 Base repository interfaces and common repository functionality.
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Optional, TypeVar, Generic, Type
+from abc import ABC
+from typing import TypeVar
 from sqlalchemy.orm import Session
 
 # Define generic type variables for repository pattern

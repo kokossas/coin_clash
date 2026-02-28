@@ -3,8 +3,7 @@ Match repository implementation for database operations related to matches.
 """
 
 import datetime
-from typing import List, Optional, Tuple
-from sqlalchemy.orm import Session
+from typing import Optional, Tuple
 
 from abc import abstractmethod
 

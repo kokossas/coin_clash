@@ -11,7 +11,6 @@ from backend.app.models.models import Match, Character
 from ..player.repository import PlayerRepo
 from ..player.character_repository import CharacterRepo
 from .repository import MatchRepo
-from ..common.exceptions import MatchAlreadyActiveError
 
 logger = logging.getLogger(__name__)
 

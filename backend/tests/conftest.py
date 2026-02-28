@@ -10,8 +10,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.db.base_class import Base
-from app.models.models import Player, Character, Match, MatchEvent, Item, PlayerItem, Transaction
-from app.core.config import settings
+from app.models.models import Player, Character, Match, Transaction
 
 TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 

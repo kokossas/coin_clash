@@ -1,4 +1,3 @@
-import pytest
 from backend.app.services.blockchain.errors import BlockchainError, TemporaryBlockchainError, PermanentBlockchainError, BlockchainErrorType
 
 def test_blockchain_error_types():

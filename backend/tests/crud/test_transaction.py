@@ -1,8 +1,7 @@
-import pytest
 from sqlalchemy.orm import Session
 
 from app.crud.transaction import crud_transaction
-from app.schemas.transaction import TransactionCreate, TransactionUpdate
+from app.schemas.transaction import TransactionCreate
 from app.models.models import Transaction
 
 def test_create_transaction(db_session: Session):
