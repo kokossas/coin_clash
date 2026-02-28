@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from ....db.session import get_db_dependency
+from ....models.models import Player
 from ....schemas.character import Character, CharacterCreate, CharacterUpdate
 from ....schemas.owned_character import OwnedCharacter
 from ....crud.character import crud_character
+from ....services.auth.dependencies import get_current_player
 from ....services.character_inventory import CharacterInventoryService
 from core.config.config_loader import load_config
 from pydantic import BaseModel
@@ -14,13 +16,11 @@ router = APIRouter()
 
 
 class PurchaseRequest(BaseModel):
-    player_id: int
     quantity: int
     payment_ref: str
 
 
 class ReviveRequest(BaseModel):
-    player_id: int
     payment_ref: str
 
 
@@ -33,13 +33,14 @@ class RevivalFeeResponse(BaseModel):
 @router.post("/purchase", response_model=List[OwnedCharacter])
 async def purchase_characters(
     body: PurchaseRequest,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
     service = CharacterInventoryService()
     try:
         return await service.purchase_characters(
             db,
-            player_id=body.player_id,
+            player_id=current_player.id,
             quantity=body.quantity,
             payment_ref=body.payment_ref,
         )
@@ -49,12 +50,12 @@ async def purchase_characters(
 
 @router.get("/inventory", response_model=List[OwnedCharacter])
 def get_inventory(
-    player_id: int,
+    current_player: Player = Depends(get_current_player),
     alive_only: bool = False,
     db: Session = Depends(get_db_dependency),
 ):
     service = CharacterInventoryService()
-    return service.get_player_inventory(db, player_id=player_id, alive_only=alive_only)
+    return service.get_player_inventory(db, player_id=current_player.id, alive_only=alive_only)
 
 
 @router.get("/{character_id}/revival-fee", response_model=RevivalFeeResponse)
@@ -62,7 +63,7 @@ def get_revival_fee(character_id: int):
     config = load_config()
     return RevivalFeeResponse(
         character_id=character_id,
-        revival_fee=config["character_revival_fee"],
+        revival_fee=config.character_revival_fee,
     )
 
 
@@ -70,6 +71,7 @@ def get_revival_fee(character_id: int):
 async def revive_character(
     character_id: int,
     body: ReviveRequest,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
     service = CharacterInventoryService()
@@ -77,7 +79,7 @@ async def revive_character(
         return await service.revive_character(
             db,
             character_id=character_id,
-            player_id=body.player_id,
+            player_id=current_player.id,
             payment_ref=body.payment_ref,
         )
     except ValueError as e:

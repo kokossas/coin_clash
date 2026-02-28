@@ -57,7 +57,7 @@ class MatchLobbyService:
         if not (1 <= max_characters_per_player <= 5):
             raise ValueError("max_characters_per_player must be between 1 and 5")
 
-        listing_fee = self._config["listing_fee"]
+        listing_fee = self._config.listing_fee
         await self._payment.process_deposit(
             wallet_address=creator_wallet_address,
             amount=listing_fee,
@@ -139,7 +139,7 @@ class MatchLobbyService:
             entry_fee_total = len(owned_character_ids) * match.entry_fee
 
             # Tiered protocol fee: rate depends on number of characters entered
-            fee_tiers = self._config["protocol_fee_tiers"]
+            fee_tiers = self._config.protocol_fee_tiers
             char_count = len(owned_character_ids)
             tier_key = min(char_count, max(fee_tiers.keys()))
             protocol_rate = fee_tiers[tier_key] / 100.0

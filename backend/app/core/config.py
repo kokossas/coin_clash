@@ -23,10 +23,6 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # Game settings
-    DEFAULT_FEE: float = 1.0
-    KILL_AWARD_RATE_DEFAULT: float = 0.5
-    
     model_config = ConfigDict(case_sensitive=True)
     
     def __init__(self, **data: Any):

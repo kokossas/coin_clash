@@ -31,7 +31,7 @@ class CharacterInventoryService:
         if player is None:
             raise ValueError(f"Player {player_id} not found")
 
-        total_cost = quantity * self._config["character_base_price"]
+        total_cost = quantity * self._config.character_base_price
 
         await self._payment.process_deposit(
             wallet_address=payment_ref,
@@ -84,7 +84,7 @@ class CharacterInventoryService:
         if in_active_match is not None:
             raise ValueError("Character is in an active match")
 
-        revival_fee = self._config["character_revival_fee"]
+        revival_fee = self._config.character_revival_fee
         await self._payment.process_deposit(
             wallet_address=payment_ref,
             amount=revival_fee,

@@ -25,7 +25,7 @@ def run_match_background(match_id: int, db: Session) -> None:
     Intended as the target for BackgroundTasks and the scheduler.
     """
     config = load_config()
-    scenarios = load_scenarios(config["scenario_dir"])
+    scenarios = load_scenarios(config.scenario_dir)
 
     player_repo = SqlPlayerRepo(db)
     character_repo = SqlCharacterRepo(db)

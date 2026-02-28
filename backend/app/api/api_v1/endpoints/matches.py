@@ -9,11 +9,12 @@ from ....crud.match import crud_match
 from ....crud.match_event import crud_match_event
 from ....crud.pending_payout import crud_pending_payout
 from ....db.session import get_db_dependency
-from ....models.models import Character, Match, MatchEvent as MatchEventModel
+from ....models.models import Character, Match, MatchEvent as MatchEventModel, Player
 from ....schemas.match import Match as MatchSchema, MatchCreate, MatchUpdate
 from ....schemas.match_event import MatchEvent as MatchEventSchema
 from ....schemas.match_join_request import MatchJoinRequest as MatchJoinRequestSchema
 from ....schemas.pending_payout import PendingPayout as PendingPayoutSchema
+from ....services.auth.dependencies import get_current_player
 from ....services.match_lobby import MatchLobbyService
 from ....services.settlement import SettlementService
 
@@ -21,7 +22,6 @@ router = APIRouter()
 
 
 class CreateLobbyRequest(BaseModel):
-    creator_wallet_address: str
     entry_fee: float
     kill_award_rate: float
     start_method: str
@@ -32,7 +32,6 @@ class CreateLobbyRequest(BaseModel):
 
 
 class JoinMatchRequest(BaseModel):
-    player_id: int
     character_ids: List[int]
     payment_ref: str
 
@@ -66,13 +65,14 @@ class MatchResultsResponse(BaseModel):
 @router.post("/create", response_model=MatchSchema)
 async def create_match_lobby(
     body: CreateLobbyRequest,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
     service = MatchLobbyService()
     try:
         return await service.create_match_lobby(
             db,
-            creator_wallet_address=body.creator_wallet_address,
+            creator_wallet_address=current_player.wallet_address,
             entry_fee=body.entry_fee,
             kill_award_rate=body.kill_award_rate,
             start_method=body.start_method,
@@ -118,6 +118,7 @@ def get_open_matches(
 async def join_match(
     match_id: int,
     body: JoinMatchRequest,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
     service = MatchLobbyService()
@@ -125,7 +126,7 @@ async def join_match(
         return await service.join_match(
             db,
             match_id=match_id,
-            player_id=body.player_id,
+            player_id=current_player.id,
             owned_character_ids=body.character_ids,
             payment_ref=body.payment_ref,
         )
@@ -182,6 +183,7 @@ def get_match_status(
 @router.post("/{match_id}/settle", response_model=List[PendingPayoutSchema])
 async def settle_match(
     match_id: int,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
     match = crud_match.get(db, id=match_id)

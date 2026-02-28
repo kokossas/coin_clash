@@ -9,9 +9,10 @@ from ....crud.match import crud_match
 from ....crud.pending_payout import crud_pending_payout
 from ....crud.player import crud_player
 from ....db.session import get_db_dependency
-from ....models.models import Character, Match
+from ....models.models import Character, Match, Player
 from ....schemas.pending_payout import PendingPayout as PendingPayoutSchema
-from ....schemas.player import Player, PlayerCreate, PlayerUpdate
+from ....schemas.player import Player as PlayerSchema, PlayerCreate, PlayerUpdate
+from ....services.auth.dependencies import get_current_player
 
 router = APIRouter()
 
@@ -37,21 +38,18 @@ class MatchHistoryEntry(BaseModel):
 
 @router.get("/profile", response_model=PlayerProfile)
 def get_player_profile(
-    player_id: int,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
-    player = crud_player.get(db, id=player_id)
-    if not player:
-        raise HTTPException(status_code=404, detail="Player not found")
-    payouts = crud_pending_payout.get_unsettled_by_player(db, player_id=player_id)
+    payouts = crud_pending_payout.get_unsettled_by_player(db, player_id=current_player.id)
     return PlayerProfile(
-        id=player.id,
-        wallet_address=player.wallet_address,
-        username=player.username,
-        balance=player.balance,
-        wins=player.wins,
-        kills=player.kills,
-        total_earnings=player.total_earnings,
+        id=current_player.id,
+        wallet_address=current_player.wallet_address,
+        username=current_player.username,
+        balance=current_player.balance,
+        wins=current_player.wins,
+        kills=current_player.kills,
+        total_earnings=current_player.total_earnings,
         pending_payouts=payouts,
     )
 
@@ -101,7 +99,7 @@ def get_match_history(
 # --- Existing generic CRUD endpoints below ---
 
 
-@router.get("/", response_model=List[Player])
+@router.get("/", response_model=List[PlayerSchema])
 def read_players(
     db: Session = Depends(get_db_dependency),
     skip: int = 0,
@@ -110,7 +108,7 @@ def read_players(
     return crud_player.get_multi(db, skip=skip, limit=limit)
 
 
-@router.post("/", response_model=Player)
+@router.post("/", response_model=PlayerSchema)
 def create_player(
     player_in: PlayerCreate,
     db: Session = Depends(get_db_dependency),
@@ -121,7 +119,7 @@ def create_player(
     return crud_player.create(db, obj_in=player_in)
 
 
-@router.get("/{player_id}", response_model=Player)
+@router.get("/{player_id}", response_model=PlayerSchema)
 def read_player(
     player_id: int,
     db: Session = Depends(get_db_dependency),
@@ -132,19 +130,22 @@ def read_player(
     return player
 
 
-@router.put("/{player_id}", response_model=Player)
+@router.put("/{player_id}", response_model=PlayerSchema)
 def update_player(
     player_id: int,
     player_in: PlayerUpdate,
+    current_player: Player = Depends(get_current_player),
     db: Session = Depends(get_db_dependency),
 ):
+    if current_player.id != player_id:
+        raise HTTPException(status_code=403, detail="Cannot update another player")
     player = crud_player.get(db, id=player_id)
     if not player:
         raise HTTPException(status_code=404, detail="Player not found")
     return crud_player.update(db, db_obj=player, obj_in=player_in)
 
 
-@router.get("/by-username/{username}", response_model=Player)
+@router.get("/by-username/{username}", response_model=PlayerSchema)
 def read_player_by_username(
     username: str,
     db: Session = Depends(get_db_dependency),
