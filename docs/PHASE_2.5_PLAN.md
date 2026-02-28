@@ -69,9 +69,9 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| `create_match_lobby(creator_id, params)` | `backend/app/services/match_lobby.py` | ⬜ |
-| `join_match(match_id, player_id, character_ids, payment_ref)` — atomic transaction | `backend/app/services/match_lobby.py` | ⬜ |
-| `check_start_conditions(match_id)` | `backend/app/services/match_lobby.py` | ⬜ |
+| `create_match_lobby(creator_wallet_address, params)` | `backend/app/services/match_lobby.py` | ✅ Done |
+| `join_match(match_id, player_id, character_ids, payment_ref)` — atomic transaction | `backend/app/services/match_lobby.py` | ✅ Done |
+| `check_start_conditions(match_id)` | `backend/app/services/match_lobby.py` | ✅ Done |
 
 ---
 
@@ -79,10 +79,12 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| Kill awards: `kills × entry_fee × kill_award_rate`, capped at player's total entry fee | `backend/app/services/match_lobby.py` or engine | ⬜ |
-| Protocol fee: `total_pool × protocol_fee_percentage / 100` | same | ⬜ |
-| Winner payout: `total_pool - kill_awards - protocol_fee` | same | ⬜ |
-| Store as `pending_payouts` records | same | ⬜ |
+| Kill awards: `kills × entry_fee × kill_award_rate`, capped at player's total entry fee | `backend/app/services/match_lobby.py` | ✅ Done |
+| Protocol fee: `total_pool × protocol_fee_percentage / 100` | `backend/app/services/match_lobby.py` | ✅ Done |
+| Winner payout: `total_pool - kill_awards - protocol_fee` | `backend/app/services/match_lobby.py` | ✅ Done |
+| Store as `pending_payouts` records | `backend/app/services/match_lobby.py` | ✅ Done |
+| Remove `_calculate_payouts` and direct balance manipulation from engine | `core/match/engine.py` | ✅ Done |
+| Wire `calculate_and_store_payouts` into match_runner | `backend/app/services/match_runner.py` | ✅ Done |
 
 ---
 
@@ -119,16 +121,6 @@
 |------|-------|--------|
 | Countdown expiry scheduling via `TaskScheduler` | `backend/app/services/match_lobby.py`, `core/scheduler/scheduler.py` | ⬜ |
 | Wire round delay into `match_runner` | `backend/app/services/match_runner.py` | ⬜ |
-
----
-
-## Decisions
-
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | `characters` → `match_characters` rename strategy | (b) Rename `__tablename__` in ORM in-place. Manual DDL rename needed on existing DB. |
-| 2 | `created_at` on Match schema | Confirmed: `BaseModel` mixin provides it. No change needed. |
-| 3 | `PlayerService` username-based lookups | Addressed in prerequisites (Step 0, items 9–11). |
 
 ---
 

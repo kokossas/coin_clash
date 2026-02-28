@@ -47,3 +47,6 @@ def run_match_background(match_id: int, db: Session) -> None:
     )
 
     engine.run_match(participants)
+
+    from backend.app.services.match_lobby import MatchLobbyService
+    MatchLobbyService().calculate_and_store_payouts(db, match_id)

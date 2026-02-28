@@ -60,8 +60,7 @@ class CRUDMatchJoinRequest(CRUDBase[MatchJoinRequest, MatchJoinRequestCreate, Ma
                 owned_character_id=oc_id,
             ))
 
-        db.commit()
-        db.refresh(join_request)
+        db.flush()
         return join_request
 
     def update_payment_status(

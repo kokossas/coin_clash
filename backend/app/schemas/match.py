@@ -10,6 +10,7 @@ class MatchBase(BaseModel):
     start_threshold: int
 
 class MatchCreate(MatchBase):
+    status: str = "pending"
     creator_wallet_address: Optional[str] = None
     min_players: int = 3
     max_characters: int = 20

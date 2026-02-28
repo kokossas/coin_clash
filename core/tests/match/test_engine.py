@@ -204,37 +204,6 @@ def _make_engine(
     )
 
 
-class TestCalculatePayouts:
-
-    def test_basic_split(self):
-        players, chars = _make_players_and_chars(4)
-        engine = _make_engine(players, chars, match=StubMatch(entry_fee=10.0, kill_award_rate=0.1))
-        engine.participants = chars
-        engine.entry_fee = 10.0
-        engine.kill_award_rate = 0.1
-
-        protocol_cut, kill_awards, winner_payout = engine._calculate_payouts(chars[0])
-
-        total_fees = 4 * 10.0
-        assert protocol_cut == pytest.approx(total_fees * 0.10)
-        prize_pool = total_fees - protocol_cut
-        expected_kills = 3 * (10.0 * 0.1)
-        assert kill_awards == pytest.approx(expected_kills)
-        assert winner_payout == pytest.approx(prize_pool - expected_kills)
-        assert protocol_cut + kill_awards + winner_payout == pytest.approx(total_fees)
-
-    def test_kill_awards_capped_at_prize_pool(self):
-        players, chars = _make_players_and_chars(4)
-        engine = _make_engine(players, chars, match=StubMatch(entry_fee=10.0, kill_award_rate=5.0))
-        engine.participants = chars
-        engine.entry_fee = 10.0
-        engine.kill_award_rate = 5.0
-
-        protocol_cut, kill_awards, winner_payout = engine._calculate_payouts(chars[0])
-
-        prize_pool = (4 * 10.0) - protocol_cut
-        assert kill_awards <= prize_pool
-        assert winner_payout >= 0
 
 
 class TestRunMatchConvergence:

@@ -1,7 +1,7 @@
 import re
 import time
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 
 from backend.app.models.models import Character, OwnedCharacter
 from ..player.repository import PlayerRepo
@@ -168,19 +168,6 @@ class MatchEngine:
             player = self.player_repo.get_player_by_id(killer.player_id)
             if player:
                 self.player_repo.add_kill(player.id)
-                award = self.entry_fee * self.kill_award_rate
-                if award > 0:
-                    logger.info(
-                        "kill_award",
-                        extra={
-                            "match_id": self.match_id,
-                            "round": self.round_number,
-                            "player": player.username,
-                            "amount": award,
-                            "event_type": "direct_kill"
-                        }
-                    )
-                    self.player_repo.add_earnings(player.id, award)
 
     def _handle_self_event(self, participants: List[Character]):
         # participants[0] is self-eliminated
@@ -457,43 +444,6 @@ class MatchEngine:
             extra={"match_id": self.match_id, "round": self.round_number, "alive": len(self.alive_pool)}
         )
 
-    def _calculate_payouts(self, winner: Character) -> Tuple[float, float, float]:
-        """Calculates protocol cut, total kill awards, and winner payout."""
-        # This needs info about how many chars each player bought, which isn't stored directly on Match
-        # For simulation, assume default purchase count or load all participants
-        # Let's assume total entries = num_participants * entry_fee for simplicity here.
-        # A more accurate way would be to sum entry fees paid during character creation.
-        num_participants = len(self.participants)
-        total_entry_fees = num_participants * self.entry_fee
-
-        # Protocol fee from per-match setting
-        protocol_fee_rate = float(self.match.protocol_fee_percentage) / 100.0
-        protocol_cut_amount = total_entry_fees * protocol_fee_rate
-
-        prize_pool_before_kills = total_entry_fees - protocol_cut_amount
-
-        # Total Kill Awards: Sum up awards logged or recalculate?
-        # Need to track this during the match. Let's add a tracker.
-        # For now, estimate based on number of deaths.
-        num_deaths = num_participants - 1
-        total_kill_award_amount = num_deaths * (self.entry_fee * self.kill_award_rate)
-        # Ensure kill awards don't exceed the prize pool
-        total_kill_award_amount = min(total_kill_award_amount, prize_pool_before_kills)
-
-        winner_payout = prize_pool_before_kills - total_kill_award_amount
-
-        logger.info(
-            "payout_calculated",
-            extra={
-                "match_id": self.match_id,
-                "entries_total": total_entry_fees,
-                "protocol_cut": protocol_cut_amount,
-                "kill_awards": total_kill_award_amount,
-                "winner_payout": winner_payout
-            }
-        )
-
-        return protocol_cut_amount, total_kill_award_amount, winner_payout
 
     def run_match(self, participants: List[Character]):
         """Runs the full match simulation."""
@@ -542,21 +492,6 @@ class MatchEngine:
             winner_player = self.player_repo.get_player_by_id(winner.player_id)
             if winner_player:
                 self.player_repo.add_win(winner_player.id)
-                
-                # Calculate and award prize
-                protocol_cut, kill_awards, winner_payout = self._calculate_payouts(winner)
-                if winner_payout > 0:
-                    # TODO: Implement actual SUI transfer/logging
-                    logger.info(
-                        "winner_payout",
-                        extra={
-                            "match_id": self.match_id,
-                            "player": winner_player.username,
-                            "amount": winner_payout
-                        }
-                    )
-                    self.player_repo.add_earnings(winner_player.id, winner_payout)
-                    self.player_repo.update_player_balance(winner_player.id, winner_payout) # Add to balance
 
             # Update match record in DB
             self.match_repo.set_match_winner(self.match_id, winner.id)

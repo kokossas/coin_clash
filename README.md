@@ -30,8 +30,9 @@ backend/app/services/
 - Phase 1: PostgreSQL migration, FastAPI REST API, JWT auth scaffolding, service layer
 - Phase 2: Blockchain abstraction layer (all 4 interfaces + mocks + tests + retry + factory)
 - Pre-Phase 2.5 cleanup: player identity migration (wallet_address canonical), model consolidation, engine wiring
+- Phase 2.5 Steps 0–6: tech debt, DB models, schemas/CRUD, CharacterInventoryService, MatchLobbyService, payout calculation, engine changes
 
-**Next:** Phase 2.5 — character inventory, match lobbies, mock payments, round delays. See `docs/PHASE_2.5_SPEC.md`.
+**Next:** Phase 2.5 Steps 7–8 — API endpoints, background tasks. See `docs/PHASE_2.5_PLAN.md`.
 
 **Known issues:** see `docs/PROJECT_STATUS.md` § "Known Issues"
 

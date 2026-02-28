@@ -53,17 +53,30 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 
 ## What's Working
 
-- **MatchEngine** (`core/match/engine.py`): full simulation with event types, elimination, revival, payouts
+- **MatchEngine** (`core/match/engine.py`): full simulation with event types, elimination, revival, round delay, post-match owned_character sync
 - **Core repos**: PlayerRepo, CharacterRepo, MatchRepo, EventRepo, ItemRepo — all use backend ORM models
-- **match_runner** (`backend/app/services/match_runner.py`): wires all core deps, loads config/scenarios, runs engine
+- **match_runner** (`backend/app/services/match_runner.py`): wires all core deps, loads config/scenarios, runs engine, triggers payout calculation
 - **Scheduler** (`core/scheduler/scheduler.py`): thread-based task scheduler with priority queue, match start scheduling
 - **Blockchain abstraction layer** (`backend/app/services/blockchain/`): complete and tested
   - Wallet, Payment, Transaction, Asset — each with abstract base + mock provider
   - Factory with singleton pattern
   - Error hierarchy (Temporary/Permanent/Unknown) + async retry with exponential backoff
   - Full test coverage in `backend/tests/services/blockchain/`
+- **CharacterInventoryService** (`backend/app/services/character_inventory.py`): purchase, inventory, revive
+- **MatchLobbyService** (`backend/app/services/match_lobby.py`): create lobby, join match (atomic), check start conditions, payout calculation
 - **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions
 - **Scenario files**: 6 JSON files in `scenarios/` (comeback, direct_kill, environmental, group, self, story)
+
+## Implementation Decisions
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | `characters` → `match_characters` rename strategy | Rename `__tablename__` in ORM in-place. Manual DDL rename needed on existing DB. |
+| 2 | `created_at` on Match schema | `BaseModel` mixin provides it. No change needed. |
+| 3 | `PlayerService` username-based lookups | Addressed in prerequisites (Step 0, items 9–11). |
+| 4 | `MatchCreate` schema | Added `status` field (default `"pending"`) so `create_match_lobby` can set `"filling"`. |
+| 5 | `CharacterCreate` schema | Added `match_id` and `entry_order` for `join_match` Character row creation. |
+| 6 | `create_with_characters` atomicity | Changed from `commit`+`refresh` to `flush` so `join_match` controls the transaction boundary. |
 
 ## Known Issues
 
@@ -78,9 +91,10 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 - One stale `# TODO: Implement actual SUI transfer/logging` comment remains in `core/match/engine.py` `run_match`.
 - Docstring examples in `backend/app/services/blockchain/payment/base.py` and `transaction/base.py` still mention "SUI" as an example currency code — cosmetic only.
 
-### Engine payout issues
-- `_handle_direct_kill` pays kill awards immediately via `add_earnings`. `_calculate_payouts` re-estimates them as `num_deaths × entry_fee × kill_award_rate` rather than tracking actual awards paid. If any kill award was skipped (no killer found) or rates changed, the estimate diverges from reality.
-- `_calculate_payouts` now correctly reads `self.match.protocol_fee_percentage` (fixed in `496bea9`).
+### Engine payout changes (Steps 4-5)
+- `_calculate_payouts` removed from engine. `add_earnings` removed from `_handle_direct_kill` (kill tracking via `add_kill` retained). Balance manipulation removed from `run_match`.
+- Payouts now computed post-match by `MatchLobbyService.calculate_and_store_payouts` (derives kill counts from `MatchEvent` rows, stores as `pending_payouts` records).
+- `match_runner.py` calls `calculate_and_store_payouts` after `engine.run_match()`.
 
 ### Minor issues
 - None currently tracked. Previous items (EventRepo sort column, character_repository bool assignment, Pydantic v1 orm_mode in new schemas) all fixed in `496bea9` / `13d1f39`.

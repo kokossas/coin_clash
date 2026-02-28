@@ -7,7 +7,9 @@ class CharacterBase(BaseModel):
     player_id: int
 
 class CharacterCreate(CharacterBase):
+    match_id: Optional[int] = None
     owned_character_id: Optional[int] = None
+    entry_order: int = 0
 
 class CharacterUpdate(BaseModel):
     name: Optional[str] = None
