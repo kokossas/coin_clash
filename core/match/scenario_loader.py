@@ -1,5 +1,3 @@
-# /home/ubuntu/coin_clash/core/match/scenario_loader.py
-
 import json
 import os
 from typing import Dict, List
@@ -131,17 +129,4 @@ def load_scenarios(scenario_dir: str = SCENARIO_DIR) -> Dict[str, List[Dict[str,
             exc_info=True
         )
         return {category: [] for category in EXPECTED_CATEGORIES}
-
-# Example usage:
-# if __name__ == "__main__":
-#     logging.basicConfig(level=logging.INFO)
-#     # Create dummy files for testing
-#     os.makedirs(SCENARIO_DIR, exist_ok=True)
-#     with open(os.path.join(SCENARIO_DIR, "direct_kill.json"), "w") as f:
-#         json.dump([{"text": "[Character A] attacks [Character B]."}], f)
-#     with open(os.path.join(SCENARIO_DIR, "story.json"), "w") as f:
-#         json.dump([{"text": "[Character A] finds a shiny rock."}], f)
-#     loaded_scenarios = load_scenarios()
-#     print("\nLoaded Scenarios:")
-#     print(json.dumps(loaded_scenarios, indent=2))
 

@@ -9,22 +9,6 @@ async def retry_async_operation(
     backoff_factor: float = 2.0,
     **kwargs
 ) -> Any:
-    """
-    Retry an async operation with exponential backoff.
-    
-    Args:
-        operation: The async function to retry
-        max_attempts: Maximum number of retry attempts
-        initial_delay: Initial delay between retries in seconds
-        backoff_factor: Multiplier for delay between retries
-        **kwargs: Arguments to pass to the operation
-        
-    Returns:
-        The result of the operation if successful
-        
-    Raises:
-        BlockchainError: If all retry attempts fail
-    """
     attempt = 0
     delay = initial_delay
     
@@ -36,7 +20,6 @@ async def retry_async_operation(
             if attempt >= max_attempts:
                 raise
             
-            # Log the retry attempt
             print(f"Temporary error: {e.message}. Retrying in {delay} seconds. Attempt {attempt}/{max_attempts}")
             
             await asyncio.sleep(delay)
@@ -49,7 +32,6 @@ async def retry_async_operation(
             if attempt >= max_attempts:
                 raise
             
-            # Log the retry attempt
             print(f"Blockchain error: {e.message}. Retrying in {delay} seconds. Attempt {attempt}/{max_attempts}")
             
             await asyncio.sleep(delay)

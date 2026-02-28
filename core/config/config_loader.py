@@ -1,7 +1,3 @@
-# /home/ubuntu/coin_clash/core/config/config_loader.py
-
-"""Configuration loading utilities for Coin Clash."""
-
 import os
 import yaml
 from typing import Dict, Any
@@ -18,7 +14,6 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
             config = yaml.safe_load(f)
         if not isinstance(config, dict):
             raise ValueError("Config file is not a valid YAML dictionary.")
-        # Basic validation (can be expanded)
         required_keys = [
             "min_fee", "default_fee", "max_fee",
             "kill_award_rate_min", "kill_award_rate_default", "kill_award_rate_max",
@@ -37,13 +32,3 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
         raise ValueError(f"Error parsing configuration file: {e}")
     except Exception as e:
         raise RuntimeError(f"An unexpected error occurred while loading config: {e}")
-
-# Example usage:
-# if __name__ == "__main__":
-#     try:
-#         config = load_config()
-#         print("Config loaded successfully:")
-#         print(config)
-#     except (FileNotFoundError, ValueError, RuntimeError) as e:
-#         print(f"Error: {e}")
-

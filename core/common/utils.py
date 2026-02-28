@@ -1,5 +1,3 @@
-# /home/ubuntu/coin_clash/core/common/utils.py
-
 import random
 from typing import Optional, TypeVar, List
 
@@ -34,11 +32,6 @@ class SeedableRandom:
         """Return the next random floating point number in the range [0.0, 1.0)."""
         return self._random.random()
 
-# Character Naming Utility
-# Using a predefined list as suggested, though GameLogic mentioned cycling
-# pasted_content mentioned sequential assignment based on global index pointer.
-# Let's go with sequential assignment for simplicity and persistence.
-# We'll manage the index pointer within the player creation logic later.
 CHARACTER_NAMES = [
     "Ace", "Bandit", "Calamity", "Deadeye", "Echo", "Flint", "Ghost", "Hazard",
     "Inferno", "Jinx", "Kestrel", "Lasso", "Maverick", "Nomad", "Outlaw", "Phantom",
@@ -49,7 +42,6 @@ CHARACTER_NAMES = [
     "Xebec", "Yardarm", "Zenith"
 ]
 
-# Track name usages for character name generation
 _name_index = 0
 
 def get_next_character_name() -> str:

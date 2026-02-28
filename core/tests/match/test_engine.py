@@ -8,10 +8,6 @@ import pytest
 from core.match.engine import MatchEngine
 
 
-# ---------------------------------------------------------------------------
-# Minimal stubs — satisfy the engine's interface without a database
-# ---------------------------------------------------------------------------
-
 class StubMatch:
     def __init__(self, match_id=1, entry_fee=1.0, kill_award_rate=0.1, protocol_fee_percentage=10.0):
         self.id = match_id
@@ -137,10 +133,6 @@ class StubItemRepo:
     pass
 
 
-# ---------------------------------------------------------------------------
-# Shared config and scenarios
-# ---------------------------------------------------------------------------
-
 MINIMAL_CONFIG = {
     "primary_event_weights": {
         "direct_kill": 50,
@@ -211,10 +203,6 @@ def _make_engine(
         random_seed=seed,
     )
 
-
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
 
 class TestCalculatePayouts:
 

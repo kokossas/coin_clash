@@ -1,8 +1,3 @@
-"""
-Match service for Coin Clash.
-This module handles the business logic for match creation, starting, and completion.
-"""
-
 import logging
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -22,15 +17,6 @@ class MatchService:
                  player_repo: PlayerRepo, 
                  character_repo: CharacterRepo,
                  db_session: Session):
-        """
-        Initialize the match service.
-        
-        Args:
-            match_repo: Repository for match operations
-            player_repo: Repository for player operations
-            character_repo: Repository for character operations
-            db_session: Database session
-        """
         self.match_repo = match_repo
         self.player_repo = player_repo
         self.character_repo = character_repo
@@ -41,21 +27,9 @@ class MatchService:
                      kill_award_rate: float, 
                      start_method: str, 
                      start_threshold: int) -> Match:
-        """
-        Create a new match with specified parameters.
-        
-        Args:
-            entry_fee: Cost to enter a character in the match
-            kill_award_rate: Multiplier for kill rewards
-            start_method: Either "cap" (start when player cap reached) or "timeout" (start after timer)
-            start_threshold: Value for cap or timer duration in seconds
-            
-        Returns:
-            The created Match object
-        """
+        """Create a new match with specified parameters."""
         timer_duration = start_threshold if start_method == "timeout" else None
         
-        # Create the match with start_timer_end calculated from timer_duration
         match = self.match_repo.create_match(
             entry_fee=entry_fee,
             kill_award_rate=kill_award_rate,
@@ -74,34 +48,21 @@ class MatchService:
             }
         )
         
-        # If using timer, schedule match start at timer end
         if match.start_timer_end:
-            # Here we'd schedule a task to start the match when the timer expires
-            # This would typically be done with a task scheduler
+            # TODO: schedule match start via task scheduler
             pass
         
         self.db.commit()
         return match
         
     def check_and_start_match(self, match_id: int) -> bool:
-        """
-        Check if match can be started based on player cap and purchases.
-        
-        Args:
-            match_id: The ID of the match to check
-            
-        Returns:
-            True if match was started, False otherwise
-        """
-        # Get match details
+        """Check if match can be started based on player cap and purchases."""
         match = self.match_repo.get_match_by_id(match_id)
         if not match or match.status != "pending":
             return False
             
-        # Check if player cap has been reached and all players have characters
         joined_count, purchased_count = self.match_repo.get_match_participant_counts(match_id)
         
-        # Start the match if cap is reached and all players have purchased
         if (match.start_method == "cap" and 
             joined_count >= match.start_threshold and 
             purchased_count == joined_count):
@@ -120,19 +81,9 @@ class MatchService:
         return False
     
     def start_match(self, match_id: int) -> bool:
-        """
-        Start a match, handling auto-assignment of default characters if needed.
-        
-        Args:
-            match_id: The ID of the match to start
-            
-        Returns:
-            True if match was started, False otherwise
-        """
-        # Get match
+        """Start a match, handling auto-assignment of default characters if needed."""
         match = self.match_repo.get_match_by_id(match_id)
         
-        # Guard: match must exist and be in pending state
         if not match or match.status != "pending":
             if match and match.status != "pending":
                 logger.info(
@@ -142,32 +93,26 @@ class MatchService:
             return False
         
         try:
-            # Get all characters and players in this match
             characters = self.db.query(Character).filter(Character.match_id == match_id).all()
             
-            # Group characters by player_id
             player_characters: dict = {}
             for character in characters:
                 if character.player_id not in player_characters:
                     player_characters[character.player_id] = []
                 player_characters[character.player_id].append(character)
             
-            # Find players who joined but haven't purchased characters
             joined_player_ids = set(player_characters.keys())
             players_without_purchases = [
                 pid for pid in joined_player_ids
                 if len(player_characters.get(pid, [])) == 0
             ]
             
-            # Auto-assign default characters to players without purchases
             for player_id in players_without_purchases:
                 self._assign_default_character(player_id, match_id, match.entry_fee)
                 
-            # Set match as active
             self.match_repo.update_match_status(match_id, "active")
             self.match_repo.set_match_start_time(match_id)
             
-            # Invoke match engine to run the match (would typically be async)
             self._run_match(match_id)
             
             logger.info(

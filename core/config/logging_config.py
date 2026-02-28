@@ -1,7 +1,3 @@
-# /home/ubuntu/coin_clash/core/config/logging_config.py
-
-"""Logging configuration and custom formatters for Coin Clash."""
-
 import logging
 import json
 

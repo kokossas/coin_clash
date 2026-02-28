@@ -1,5 +1,3 @@
-# /home/ubuntu/coin_clash/core/match/engine.py
-
 import re
 import time
 import logging
@@ -95,8 +93,6 @@ class MatchEngine:
 
     def _get_placeholder_count(self, text: str) -> int:
         """Counts unique placeholders like [Character A], [Character B] etc."""
-        #CHANGE HAPPENING
-        #placeholders = set(re.findall(r"\\\[Character ([A-Z])\\]", text))
         placeholders = set(re.findall(r"\[Character ([A-Z])\]", text))
         return len(placeholders)
 
@@ -113,13 +109,10 @@ class MatchEngine:
         If there aren’t enough participants, raises InsufficientParticipantsError."""
         substituted_text = text
         placeholders = sorted(set(re.findall(r"(\[Character [A-Z]\])", text)))
-        # Enforce the invariant: caller must only pass correct-sized participant lists.
-        # Ensure we have enough participants for placeholders found
         if len(participants) < len(placeholders):
             raise InsufficientParticipantsError(
                 f"{len(participants)} participants for {len(placeholders)} placeholders in '{text}'"
             )
-        # Now do the actual substitution in order:
         for i, placeholder in enumerate(placeholders):
             substituted_text = substituted_text.replace(placeholder, participants[i].display_name, 1)
  
@@ -167,9 +160,8 @@ class MatchEngine:
                 }
             )
 
-    # ─── event‐effect handler methods ─────────────────────────────────────
     def _handle_direct_kill(self, participants: List[Character]):
-        # [A] kills [B]
+        # participants[0]=killer, participants[1]=victim
         if len(participants) >= 2:
             victim, killer = participants[1], participants[0]
             self._apply_elimination(victim)
@@ -191,33 +183,30 @@ class MatchEngine:
                     self.player_repo.add_earnings(player.id, award)
 
     def _handle_self_event(self, participants: List[Character]):
-        # [A] kills themself
+        # participants[0] is self-eliminated
         if participants:
             self._apply_elimination(participants[0])
 
     def _handle_environmental_event(self, participants: List[Character]):
-        # [A] eliminated by environment
+        # participants[0] is eliminated
         if participants:
             self._apply_elimination(participants[0])
 
     def _handle_group_event(self, participants: List[Character]):
-        # [A] and [B] both eliminated
+        # both participants eliminated
         if len(participants) >= 2:
             self._apply_elimination(participants[0])
             self._apply_elimination(participants[1])
 
     def _handle_extra_lethal_event(self, participants: List[Character]):
-        # extra lethal, remove first mentioned
         if participants:
             self._apply_elimination(participants[0])
 
     def _handle_comeback_event(self, participants: List[Character]):
-        # revival via scenario
         if participants:
             self._apply_revival(participants[0])
 
     def _handle_story_event(self, participants: List[Character]):
-        # non‐lethal story; no pool changes
         logger.debug(
             "story_no_pool_change",
             extra={"match_id": self.match_id, "round": self.round_number}
@@ -359,7 +348,6 @@ class MatchEngine:
             logger.info("event_skipped", extra={"match_id": self.match_id, "round": self.round_number, "reason": str(se)})
             return
  
-        # end of substitute & skip handling
         self._log_event(event_type, scenario_id, final_scenario_text, participants)
 
         # --- Apply Effects --- 

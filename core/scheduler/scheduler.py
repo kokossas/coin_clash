@@ -1,8 +1,3 @@
-"""
-Task scheduler for handling background jobs in Coin Clash.
-This module manages scheduled tasks like match auto-start at timer expiry.
-"""
-
 import logging
 import threading
 import time
@@ -22,16 +17,6 @@ class Task:
                  callback: Callable, 
                  args: Tuple = None, 
                  kwargs: Dict = None):
-        """
-        Initialize a new task.
-        
-        Args:
-            task_id: Unique identifier for the task
-            execute_at: When to execute the task
-            callback: Function to call when task executes
-            args: Positional arguments for the callback
-            kwargs: Keyword arguments for the callback
-        """
         self.task_id = task_id
         self.execute_at = execute_at
         self.callback = callback
@@ -39,11 +24,9 @@ class Task:
         self.kwargs = kwargs or {}
         
     def __lt__(self, other):
-        """Compare tasks by execution time for the priority queue."""
         return self.execute_at < other.execute_at
         
     def execute(self):
-        """Execute the task's callback function."""
         try:
             return self.callback(*self.args, **self.kwargs)
         except Exception as e:
@@ -70,10 +53,9 @@ class TaskScheduler:
         return cls._instance
     
     def __init__(self):
-        """Initialize the task scheduler."""
-        self.tasks = []  # Priority queue of tasks
-        self.tasks_by_id = {}  # Map of task_id to Task objects
-        self.lock = threading.RLock()  # Lock for thread safety
+        self.tasks = []
+        self.tasks_by_id = {}
+        self.lock = threading.RLock()
         self.running = False
         self.scheduler_thread = None
         
@@ -86,16 +68,6 @@ class TaskScheduler:
         """
         Schedule a new task to run at a specific time.
         
-        Args:
-            task_id: Unique identifier for the task
-            execute_at: When to execute the task
-            callback: Function to call when task executes
-            *args: Positional arguments for the callback
-            **kwargs: Keyword arguments for the callback
-            
-        Returns:
-            The scheduled Task object
-            
         Raises:
             SchedulerError: If a task with the same ID already exists
         """
@@ -119,24 +91,12 @@ class TaskScheduler:
     
     def schedule_match_start(self, match_id: int, execute_at: datetime.datetime,
                            match_service_factory: Callable) -> Task:
-        """
-        Schedule a match to start at the specified time.
-        
-        Args:
-            match_id: ID of the match to start
-            execute_at: When to start the match
-            match_service_factory: Function that creates a MatchService
-            
-        Returns:
-            The scheduled Task object
-        """
+        """Schedule a match to start at the specified time."""
         task_id = f"match_start_{match_id}_{execute_at.timestamp()}"
         
         def start_match_task():
             try:
-                # Create a fresh service with a new DB session
                 match_service = match_service_factory()
-                # Only start if still in pending state
                 return match_service.start_match(match_id)
             except Exception as e:
                 logger.error(
@@ -151,19 +111,9 @@ class TaskScheduler:
         return self.schedule_task(task_id, execute_at, start_match_task)
     
     def cancel_task(self, task_id: str) -> bool:
-        """
-        Cancel a scheduled task by ID.
-        
-        Args:
-            task_id: ID of the task to cancel
-            
-        Returns:
-            True if task was found and canceled, False otherwise
-        """
+        """Cancel a scheduled task by ID. Returns True if found and canceled."""
         with self.lock:
             if task_id in self.tasks_by_id:
-                # Mark the task as canceled by removing from the tasks_by_id dict
-                # The task will still be in the heap but will be skipped when processed
                 task = self.tasks_by_id.pop(task_id)
                 
                 logger.info(
@@ -178,7 +128,6 @@ class TaskScheduler:
             return False
     
     def start(self):
-        """Start the scheduler thread."""
         if self.running:
             return
             
@@ -193,7 +142,6 @@ class TaskScheduler:
         logger.info("scheduler_started")
     
     def stop(self):
-        """Stop the scheduler thread."""
         self.running = False
         if self.scheduler_thread:
             self.scheduler_thread.join(timeout=5.0)
@@ -202,11 +150,9 @@ class TaskScheduler:
         logger.info("scheduler_stopped")
     
     def _scheduler_loop(self):
-        """Main scheduler loop that processes tasks."""
         while self.running:
             try:
                 self._process_due_tasks()
-                # Sleep for a short time to avoid busy-waiting
                 time.sleep(1.0)
             except Exception as e:
                 logger.error(
@@ -215,22 +161,17 @@ class TaskScheduler:
                 )
     
     def _process_due_tasks(self):
-        """Process all tasks that are due to be executed."""
         now = datetime.datetime.now(datetime.timezone.utc)
         
         with self.lock:
-            # Process tasks that are due
             while self.tasks and self.tasks[0].execute_at <= now:
                 task = heapq.heappop(self.tasks)
                 
-                # Skip if task was canceled
                 if task.task_id not in self.tasks_by_id:
                     continue
                     
-                # Remove from tasks_by_id before execution
                 del self.tasks_by_id[task.task_id]
                 
-                # Execute the task outside the lock
                 threading.Thread(
                     target=self._execute_task,
                     args=(task,),
@@ -238,7 +179,6 @@ class TaskScheduler:
                 ).start()
     
     def _execute_task(self, task: Task):
-        """Execute a task in a separate thread."""
         try:
             logger.info(
                 "executing_task",
@@ -264,5 +204,4 @@ class TaskScheduler:
             )
 
 
-# Singleton instance
 scheduler = TaskScheduler.get_instance()

@@ -1,8 +1,3 @@
-"""
-Player service for Coin Clash.
-This module handles the business logic for player operations including character purchases.
-"""
-
 import logging
 from typing import Optional, TYPE_CHECKING
 
@@ -16,8 +11,6 @@ from .character_repository import CharacterRepo
 from ..match.repository import MatchRepo
 from ..common.exceptions import InsufficientBalanceError, MatchAlreadyActiveError
 
-# Import MatchService at function/method level to avoid circular imports
-
 logger = logging.getLogger(__name__)
 
 class CharacterService:
@@ -29,16 +22,6 @@ class CharacterService:
                  match_repo: MatchRepo,
                  match_service: 'MatchService',
                  db_session: Session):
-        """
-        Initialize the character service.
-        
-        Args:
-            player_repo: Repository for player operations
-            character_repo: Repository for character operations
-            match_repo: Repository for match operations
-            match_service: Service for match operations
-            db_session: Database session
-        """
         self.player_repo = player_repo
         self.character_repo = character_repo
         self.match_repo = match_repo
@@ -52,19 +35,10 @@ class CharacterService:
         """
         Purchase a character for a player in a specific match.
         
-        Args:
-            player_id: Player's ID
-            match_id: Match ID
-            character_name: Name for the character
-            
-        Returns:
-            The created Character
-            
         Raises:
             InsufficientBalanceError: If player can't afford the entry fee
             MatchAlreadyActiveError: If match has already started
         """
-        # Get match and verify it's still pending
         match = self.match_repo.get_match_by_id(match_id)
         if not match:
             raise ValueError(f"Match with ID {match_id} not found")
@@ -72,7 +46,6 @@ class CharacterService:
         if match.status != "pending":
             raise MatchAlreadyActiveError(f"Match {match_id} is already {match.status}")
         
-        # Get player and verify they can afford the entry fee
         player = self.player_repo.get_player_by_id(player_id)
         if not player:
             raise ValueError(f"Player with ID {player_id} not found")
@@ -82,16 +55,13 @@ class CharacterService:
                 f"Insufficient balance: {player.balance}, required: {match.entry_fee}"
             )
         
-        # Create character
         character = self.character_repo.create_character(
             name=character_name,
             player_id=player.id
         )
         
-        # Assign to match
         self.character_repo.assign_character_to_match(character.id, match_id)
         
-        # Deduct entry fee
         self.player_repo.update_player_balance(player.id, -match.entry_fee)
         
         logger.info(
@@ -105,7 +75,6 @@ class CharacterService:
             }
         )
         
-        # Check if match can be started now
         self.match_service.check_and_start_match(match_id)
         
         self.db.commit()

@@ -1,7 +1,3 @@
-# /home/ubuntu/coin_clash/core/common/exceptions.py
-
-"""Exception classes for the Coin Clash game."""
-
 class InsufficientParticipantsError(Exception):
     """Raised when a scenario template expects more characters than are available."""
     pass
