@@ -12,6 +12,7 @@ core/         Adapted game engine. Match simulation, repos, scheduler, config lo
               Imports ORM models from backend/app/models/models.py.
 backend/      FastAPI application. Single source of truth for ORM models, schemas, CRUD, API, services.
               Imports core/ for match execution (via backend/app/services/match_runner.py).
+scripts/      Dev tools. Match simulator (no DB required).
 scenarios/    JSON scenario files consumed by core/match/scenario_loader.py.
 config.yaml   Game config (event weights, fees, player limits, round delays, character pricing).
 ```
@@ -64,6 +65,8 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
   - Full test coverage in `backend/tests/services/blockchain/`
 - **CharacterInventoryService** (`backend/app/services/character_inventory.py`): purchase, inventory, revive
 - **MatchLobbyService** (`backend/app/services/match_lobby.py`): create lobby, join match (atomic), check start conditions, payout calculation with tiered protocol fees
+- **Payout calculator** (`backend/app/services/payout_calculator.py`): pure payout math extracted from MatchLobbyService — no DB/ORM dependency. Used by both the service (DB wrapper) and the simulator.
+- **Match simulator** (`scripts/simulate_match.py`): CLI dev tool. Runs MatchEngine with in-memory stubs, real scenarios/config, computes payouts via payout_calculator. Supports uniform (`--chars-per-player`) and mixed (`--char-distribution 3,1,2,1`) character distributions with per-player tiered protocol fees.
 - **SettlementService** (`backend/app/services/settlement.py`): iterates unsettled pending_payouts, calls PaymentProvider.process_withdrawal, marks settled. Auto-triggered post-match; manual endpoint as fallback.
 - **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions, Phase 2.5 endpoints (character purchase/inventory/revive, match create/open/join/events/status, player profile/match-history), match results endpoint, manual settle endpoint, `TaskScheduler` started on app lifespan
 - **Scenario files**: 6 JSON files in `scenarios/` (comeback, direct_kill, environmental, group, self, story)
@@ -100,7 +103,7 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 
 ### Engine payout changes (Steps 4-5)
 - `_calculate_payouts` removed from engine. `add_earnings` removed from `_handle_direct_kill` (kill tracking via `add_kill` retained). Balance manipulation removed from `run_match`.
-- Payouts now computed post-match by `MatchLobbyService.calculate_and_store_payouts` (derives kill counts from `MatchEvent` rows, stores as `pending_payouts` records). Protocol fee summed from per-join `protocol_fee` values on confirmed `MatchJoinRequest` rows.
+- Payouts now computed post-match by `MatchLobbyService.calculate_and_store_payouts` (calls pure `calculate_payouts` from `payout_calculator.py`, then persists results). Protocol fee summed from per-join `protocol_fee` values on confirmed `MatchJoinRequest` rows.
 - `match_runner.py` calls `calculate_and_store_payouts` after `engine.run_match()`, then triggers `SettlementService.settle_match()` (failure logged, doesn't block).
 
 ### Minor issues

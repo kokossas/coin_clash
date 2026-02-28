@@ -21,6 +21,11 @@ from backend.app.models.models import (
 from backend.app.schemas.match import MatchCreate
 from backend.app.schemas.pending_payout import PendingPayoutCreate
 from backend.app.services.blockchain.factory import BlockchainServiceFactory
+from backend.app.services.payout_calculator import (
+    CharacterInfo,
+    KillEvent,
+    calculate_payouts,
+)
 from core.config.config_loader import load_config
 from core.scheduler.scheduler import TaskScheduler
 
@@ -242,16 +247,10 @@ class MatchLobbyService:
         if not match_characters:
             return []
 
-        total_pool = len(match_characters) * match.entry_fee
-
-        # Sum per-join protocol fees stored at join time (tiered rates)
         confirmed_joins = crud_match_join_request.get_confirmed_by_match(db, match_id)
         protocol_fee = sum(float(jr.protocol_fee) for jr in confirmed_joins)
 
-        pool_after_protocol = total_pool - protocol_fee
-
-        # Build per-player kill counts from MatchEvent
-        kill_events = (
+        kill_events_db = (
             db.query(MatchEvent)
             .filter(
                 MatchEvent.match_id == match_id,
@@ -260,52 +259,29 @@ class MatchLobbyService:
             .all()
         )
 
-        # Map character_id → player_id for this match
-        char_to_player = {c.id: c.player_id for c in match_characters}
-
-        # Count characters per player (for cap calculation)
-        chars_per_player: dict[int, int] = {}
-        for c in match_characters:
-            chars_per_player[c.player_id] = chars_per_player.get(c.player_id, 0) + 1
-
-        # Count kills per player
-        kills_per_player: dict[int, int] = {}
-        for event in kill_events:
+        characters = [
+            CharacterInfo(character_id=c.id, player_id=c.player_id)
+            for c in match_characters
+        ]
+        kill_events = []
+        for event in kill_events_db:
             if not event.affected_character_ids:
                 continue
             ids = event.affected_character_ids.split(",")
-            # First ID is the killer character
-            killer_char_id = int(ids[0].strip())
-            killer_player_id = char_to_player.get(killer_char_id)
-            if killer_player_id is not None:
-                kills_per_player[killer_player_id] = (
-                    kills_per_player.get(killer_player_id, 0) + 1
-                )
+            kill_events.append(KillEvent(killer_character_id=int(ids[0].strip())))
 
-        # Calculate kill awards, capped per player
-        kill_awards: dict[int, float] = {}
-        for player_id, kills in kills_per_player.items():
-            raw_award = kills * match.entry_fee * match.kill_award_rate
-            player_entry_total = chars_per_player.get(player_id, 0) * match.entry_fee
-            kill_awards[player_id] = min(raw_award, player_entry_total)
-
-        total_kill_awards = sum(kill_awards.values())
-        # Cap total kill awards so winner payout doesn't go negative
-        if total_kill_awards > pool_after_protocol:
-            scale = pool_after_protocol / total_kill_awards if total_kill_awards > 0 else 0
-            kill_awards = {pid: amt * scale for pid, amt in kill_awards.items()}
-            total_kill_awards = pool_after_protocol
-
-        winner_payout = pool_after_protocol - total_kill_awards
-
-        # Determine winner
-        winner_player_id: Optional[int] = None
-        if match.winner_character_id is not None:
-            winner_player_id = char_to_player.get(match.winner_character_id)
+        result = calculate_payouts(
+            characters=characters,
+            kill_events=kill_events,
+            entry_fee=match.entry_fee,
+            kill_award_rate=match.kill_award_rate,
+            protocol_fee=protocol_fee,
+            winner_character_id=match.winner_character_id,
+        )
 
         payouts: List[PendingPayout] = []
 
-        for player_id, amount in kill_awards.items():
+        for player_id, amount in result.kill_awards.items():
             if amount <= 0:
                 continue
             payout = crud_pending_payout.create(
@@ -319,14 +295,14 @@ class MatchLobbyService:
             )
             payouts.append(payout)
 
-        if winner_player_id is not None and winner_payout > 0:
+        if result.winner_player_id is not None and result.winner_payout > 0:
             payout = crud_pending_payout.create(
                 db,
                 obj_in=PendingPayoutCreate(
                     match_id=match_id,
-                    player_id=winner_player_id,
+                    player_id=result.winner_player_id,
                     payout_type="winner",
-                    amount=Decimal(str(round(winner_payout, 2))),
+                    amount=Decimal(str(round(result.winner_payout, 2))),
                 ),
             )
             payouts.append(payout)
