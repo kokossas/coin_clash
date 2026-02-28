@@ -1,7 +1,6 @@
 """Tests for the new character endpoints: purchase, inventory, revival-fee, revive."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -9,15 +8,7 @@ from app.main import app
 client = TestClient(app)
 
 
-def _create_player():
-    wallet = f"0x{pytest.random_string(40)}"
-    resp = client.post("/api/v1/players/", json={"wallet_address": wallet})
-    assert resp.status_code == 200
-    return resp.json()
-
-
 def _mock_owned_character(player_id, char_id=1, name="Warrior"):
-    """Return a mock that satisfies OwnedCharacter schema serialization."""
     from datetime import datetime, timezone
 
     m = MagicMock()
@@ -28,9 +19,7 @@ def _mock_owned_character(player_id, char_id=1, name="Warrior"):
     m.revival_count = 0
     m.last_match_id = None
     m.created_at = datetime.now(timezone.utc)
-    # Pydantic from_attributes needs attribute access
     m.__class__ = type("OwnedCharacter", (), {})
-    # Provide dict-like for pydantic
     m.model_dump = lambda: {
         "id": m.id,
         "player_id": m.player_id,
@@ -46,16 +35,16 @@ def _mock_owned_character(player_id, char_id=1, name="Warrior"):
 class TestPurchaseEndpoint:
 
     @patch("app.api.api_v1.endpoints.characters.CharacterInventoryService")
-    def test_purchase_returns_owned_characters(self, mock_svc_cls):
+    def test_purchase_returns_owned_characters(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.purchase_characters = AsyncMock(
-            return_value=[_mock_owned_character(1, char_id=10)]
+            return_value=[_mock_owned_character(test_player.id, char_id=10)]
         )
         mock_svc_cls.return_value = mock_svc
 
         resp = client.post(
             "/api/v1/characters/purchase",
-            json={"player_id": 1, "quantity": 1, "payment_ref": "0xabc"},
+            json={"quantity": 1, "payment_ref": "0xabc"},
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -64,7 +53,7 @@ class TestPurchaseEndpoint:
         assert data[0]["character_name"] == "Warrior"
 
     @patch("app.api.api_v1.endpoints.characters.CharacterInventoryService")
-    def test_purchase_invalid_quantity_returns_400(self, mock_svc_cls):
+    def test_purchase_invalid_quantity_returns_400(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.purchase_characters = AsyncMock(
             side_effect=ValueError("quantity must be between 1 and 10")
@@ -73,7 +62,7 @@ class TestPurchaseEndpoint:
 
         resp = client.post(
             "/api/v1/characters/purchase",
-            json={"player_id": 1, "quantity": 0, "payment_ref": "0xabc"},
+            json={"quantity": 0, "payment_ref": "0xabc"},
         )
         assert resp.status_code == 400
 
@@ -81,15 +70,15 @@ class TestPurchaseEndpoint:
 class TestInventoryEndpoint:
 
     @patch("app.api.api_v1.endpoints.characters.CharacterInventoryService")
-    def test_inventory_returns_list(self, mock_svc_cls):
+    def test_inventory_returns_list(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.get_player_inventory.return_value = [
-            _mock_owned_character(1, char_id=1),
-            _mock_owned_character(1, char_id=2, name="Mage"),
+            _mock_owned_character(test_player.id, char_id=1),
+            _mock_owned_character(test_player.id, char_id=2, name="Mage"),
         ]
         mock_svc_cls.return_value = mock_svc
 
-        resp = client.get("/api/v1/characters/inventory?player_id=1")
+        resp = client.get("/api/v1/characters/inventory")
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
@@ -100,7 +89,7 @@ class TestRevivalFeeEndpoint:
 
     @patch("app.api.api_v1.endpoints.characters.load_config")
     def test_revival_fee_returns_config_value(self, mock_config):
-        mock_config.return_value = {"character_revival_fee": 0.75}
+        mock_config.return_value = MagicMock(character_revival_fee=0.75)
 
         resp = client.get("/api/v1/characters/42/revival-fee")
         assert resp.status_code == 200
@@ -113,22 +102,22 @@ class TestRevivalFeeEndpoint:
 class TestReviveEndpoint:
 
     @patch("app.api.api_v1.endpoints.characters.CharacterInventoryService")
-    def test_revive_returns_owned_character(self, mock_svc_cls):
+    def test_revive_returns_owned_character(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
-        oc = _mock_owned_character(1, char_id=5)
+        oc = _mock_owned_character(test_player.id, char_id=5)
         oc.revival_count = 1
         mock_svc.revive_character = AsyncMock(return_value=oc)
         mock_svc_cls.return_value = mock_svc
 
         resp = client.post(
             "/api/v1/characters/5/revive",
-            json={"player_id": 1, "payment_ref": "0xabc"},
+            json={"payment_ref": "0xabc"},
         )
         assert resp.status_code == 200
         assert resp.json()["id"] == 5
 
     @patch("app.api.api_v1.endpoints.characters.CharacterInventoryService")
-    def test_revive_wrong_player_returns_400(self, mock_svc_cls):
+    def test_revive_wrong_player_returns_400(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.revive_character = AsyncMock(
             side_effect=ValueError("Character not owned by this player")
@@ -137,6 +126,6 @@ class TestReviveEndpoint:
 
         resp = client.post(
             "/api/v1/characters/5/revive",
-            json={"player_id": 999, "payment_ref": "0xabc"},
+            json={"payment_ref": "0xabc"},
         )
         assert resp.status_code == 400

@@ -41,12 +41,12 @@ def mock_payment():
     return provider
 
 
-MOCK_CONFIG = {
-    "listing_fee": 0.1,
-    "character_base_price": 1.0,
-    "character_revival_fee": 0.5,
-    "protocol_fee_tiers": {1: 10.0, 2: 8.0, 3: 6.0},
-}
+MOCK_CONFIG = MagicMock(
+    listing_fee=0.1,
+    character_base_price=1.0,
+    character_revival_fee=0.5,
+    protocol_fee_tiers={1: 10.0, 2: 8.0, 3: 6.0},
+)
 
 
 @pytest.fixture

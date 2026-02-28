@@ -1,6 +1,7 @@
 """Tests for the new player endpoints: profile, match-history."""
 
-import pytest
+import random
+import string
 from decimal import Decimal
 from fastapi.testclient import TestClient
 
@@ -19,10 +20,10 @@ def _db():
 
 
 def _make_player(db, wallet=None, **overrides):
-    wallet = wallet or f"0x{pytest.random_string(40)}"
+    wallet = wallet or f"0x{''.join(random.choices(string.hexdigits, k=40))}"
     defaults = dict(
         wallet_address=wallet,
-        username=f"u_{pytest.random_string(6)}",
+        username=f"u_{''.join(random.choices(string.ascii_lowercase, k=6))}",
         balance=100.0,
         wins=5,
         kills=10,
@@ -54,14 +55,13 @@ def _make_match(db, **overrides):
 
 class TestProfileEndpoint:
 
-    def test_returns_player_with_pending_payouts(self):
+    def test_returns_player_with_pending_payouts(self, test_player):
         db = _db()
-        player = _make_player(db)
         match = _make_match(db)
 
         payout = PendingPayout(
             match_id=match.id,
-            player_id=player.id,
+            player_id=test_player.id,
             payout_type="winner",
             amount=Decimal("5.00"),
             currency="USDC",
@@ -69,20 +69,20 @@ class TestProfileEndpoint:
         db.add(payout)
         db.commit()
 
-        resp = client.get(f"/api/v1/players/profile?player_id={player.id}")
+        resp = client.get("/api/v1/players/profile")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["id"] == player.id
-        assert data["wallet_address"] == player.wallet_address
+        assert data["id"] == test_player.id
+        assert data["wallet_address"] == test_player.wallet_address
         assert data["balance"] == 100.0
         assert data["wins"] == 5
         assert len(data["pending_payouts"]) == 1
         assert data["pending_payouts"][0]["payout_type"] == "winner"
         assert float(data["pending_payouts"][0]["amount"]) == 5.0
 
-    def test_profile_player_not_found_returns_404(self):
-        resp = client.get("/api/v1/players/profile?player_id=999999")
-        assert resp.status_code == 404
+    def test_profile_unauthenticated_returns_401(self):
+        resp = client.get("/api/v1/players/profile")
+        assert resp.status_code == 401
 
 
 class TestMatchHistoryEndpoint:

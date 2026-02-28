@@ -1,7 +1,7 @@
 """Tests for CharacterInventoryService — validation guards and state transitions."""
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -48,10 +48,7 @@ def service(mock_payment):
         return_value=mock_payment,
     ), patch(
         "app.services.character_inventory.load_config",
-        return_value={
-            "character_base_price": 1.0,
-            "character_revival_fee": 0.5,
-        },
+        return_value=MagicMock(character_base_price=1.0, character_revival_fee=0.5),
     ):
         svc = CharacterInventoryService()
     return svc

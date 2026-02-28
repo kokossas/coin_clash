@@ -1,8 +1,7 @@
 """Tests for the new match endpoints: create, open, join, events, status."""
 
-import pytest
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -21,8 +20,9 @@ def _db():
 
 
 def _make_player(db, wallet=None):
-    wallet = wallet or f"0x{pytest.random_string(40)}"
-    p = Player(wallet_address=wallet, username=f"u_{pytest.random_string(6)}", balance=0.0)
+    import random, string
+    wallet = wallet or f"0x{''.join(random.choices(string.hexdigits, k=40))}"
+    p = Player(wallet_address=wallet, username=f"u_{''.join(random.choices(string.ascii_lowercase, k=6))}", balance=0.0)
     db.add(p)
     db.commit()
     db.refresh(p)
@@ -74,9 +74,8 @@ def _make_event(db, match_id, round_number=1):
 class TestCreateLobby:
 
     @patch("app.api.api_v1.endpoints.matches.MatchLobbyService")
-    def test_create_lobby_returns_match(self, mock_svc_cls):
+    def test_create_lobby_returns_match(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
-        # Return a mock that looks like a Match ORM object
         mock_match = MagicMock()
         mock_match.id = 1
         mock_match.entry_fee = 2.0
@@ -84,7 +83,7 @@ class TestCreateLobby:
         mock_match.start_method = "cap"
         mock_match.start_threshold = 60
         mock_match.status = "filling"
-        mock_match.creator_wallet_address = "0xcreator"
+        mock_match.creator_wallet_address = test_player.wallet_address
         mock_match.min_players = 3
         mock_match.max_characters = 20
         mock_match.max_characters_per_player = 3
@@ -104,7 +103,6 @@ class TestCreateLobby:
         resp = client.post(
             "/api/v1/matches/create",
             json={
-                "creator_wallet_address": "0xcreator",
                 "entry_fee": 2.0,
                 "kill_award_rate": 0.1,
                 "start_method": "cap",
@@ -117,7 +115,7 @@ class TestCreateLobby:
         assert data["entry_fee"] == 2.0
 
     @patch("app.api.api_v1.endpoints.matches.MatchLobbyService")
-    def test_create_lobby_invalid_params_returns_400(self, mock_svc_cls):
+    def test_create_lobby_invalid_params_returns_400(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.create_match_lobby = AsyncMock(
             side_effect=ValueError("min_players must be between 3 and 50")
@@ -127,7 +125,6 @@ class TestCreateLobby:
         resp = client.post(
             "/api/v1/matches/create",
             json={
-                "creator_wallet_address": "0xcreator",
                 "entry_fee": 1.0,
                 "kill_award_rate": 0.1,
                 "start_method": "cap",
@@ -160,7 +157,6 @@ class TestGetOpenMatches:
         resp = client.get("/api/v1/matches/open?has_slots=true")
         assert resp.status_code == 200
         data = resp.json()
-        # The match is full (1/1), should be excluded
         match_ids = [m["id"] for m in data]
         assert match.id not in match_ids
 
@@ -180,12 +176,12 @@ class TestGetOpenMatches:
 class TestJoinMatch:
 
     @patch("app.api.api_v1.endpoints.matches.MatchLobbyService")
-    def test_join_returns_join_request(self, mock_svc_cls):
+    def test_join_returns_join_request(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_jr = MagicMock()
         mock_jr.id = 1
         mock_jr.match_id = 10
-        mock_jr.player_id = 1
+        mock_jr.player_id = test_player.id
         mock_jr.entry_fee_total = Decimal("2.0")
         mock_jr.protocol_fee = Decimal("0.16")
         mock_jr.payment_status = "confirmed"
@@ -197,13 +193,13 @@ class TestJoinMatch:
 
         resp = client.post(
             "/api/v1/matches/10/join",
-            json={"player_id": 1, "character_ids": [1, 2], "payment_ref": "0xabc"},
+            json={"character_ids": [1, 2], "payment_ref": "0xabc"},
         )
         assert resp.status_code == 200
         assert resp.json()["payment_status"] == "confirmed"
 
     @patch("app.api.api_v1.endpoints.matches.MatchLobbyService")
-    def test_join_invalid_returns_400(self, mock_svc_cls):
+    def test_join_invalid_returns_400(self, mock_svc_cls, test_player):
         mock_svc = MagicMock()
         mock_svc.join_match = AsyncMock(
             side_effect=ValueError("Match is not accepting joins")
@@ -212,7 +208,7 @@ class TestJoinMatch:
 
         resp = client.post(
             "/api/v1/matches/10/join",
-            json={"player_id": 1, "character_ids": [1], "payment_ref": "0xabc"},
+            json={"character_ids": [1], "payment_ref": "0xabc"},
         )
         assert resp.status_code == 400
 
@@ -234,8 +230,8 @@ class TestGetEvents:
         db = _db()
         match = _make_match(db)
         e1 = _make_event(db, match.id, round_number=1)
-        e2 = _make_event(db, match.id, round_number=2)
-        e3 = _make_event(db, match.id, round_number=3)
+        _make_event(db, match.id, round_number=2)
+        _make_event(db, match.id, round_number=3)
 
         resp = client.get(f"/api/v1/matches/{match.id}/events?after_event_id={e1.id}")
         assert resp.status_code == 200
