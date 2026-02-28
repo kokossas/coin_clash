@@ -21,7 +21,9 @@ backend/app/services/
   blockchain/     Blockchain abstraction layer — wallet, payment, transaction, asset
                   Each has abstract base + mock provider. Factory with singleton pattern.
                   Error hierarchy + async retry with exponential backoff.
-  match_runner.py Wires core/ repos and drives MatchEngine
+  character_inventory.py  Purchase, inventory, revive owned characters
+  match_lobby.py          Create lobby, join match, check start conditions, payout calculation
+  match_runner.py         Wires core/ repos and drives MatchEngine
 ```
 
 ## Current State
@@ -30,9 +32,9 @@ backend/app/services/
 - Phase 1: PostgreSQL migration, FastAPI REST API, JWT auth scaffolding, service layer
 - Phase 2: Blockchain abstraction layer (all 4 interfaces + mocks + tests + retry + factory)
 - Pre-Phase 2.5 cleanup: player identity migration (wallet_address canonical), model consolidation, engine wiring
-- Phase 2.5 Steps 0–6: tech debt, DB models, schemas/CRUD, CharacterInventoryService, MatchLobbyService, payout calculation, engine changes
+- Phase 2.5 Steps 0–8: tech debt, DB models, schemas/CRUD, CharacterInventoryService, MatchLobbyService, payout calculation, engine changes, API endpoints, background tasks
 
-**Next:** Phase 2.5 Steps 7–8 — API endpoints, background tasks. See `docs/PHASE_2.5_PLAN.md`.
+**Next:** Phase 3 — Auth / wallet signature verification. See `docs/PROJECT_STATUS.md`.
 
 **Known issues:** see `docs/PROJECT_STATUS.md` § "Known Issues"
 

@@ -64,7 +64,7 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
   - Full test coverage in `backend/tests/services/blockchain/`
 - **CharacterInventoryService** (`backend/app/services/character_inventory.py`): purchase, inventory, revive
 - **MatchLobbyService** (`backend/app/services/match_lobby.py`): create lobby, join match (atomic), check start conditions, payout calculation
-- **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions
+- **FastAPI app**: CORS, JWT auth scaffolding, CRUD endpoints for players/characters/matches/transactions, Phase 2.5 endpoints (character purchase/inventory/revive, match create/open/join/events/status, player profile/match-history), `TaskScheduler` started on app lifespan
 - **Scenario files**: 6 JSON files in `scenarios/` (comeback, direct_kill, environmental, group, self, story)
 
 ## Implementation Decisions
@@ -77,6 +77,9 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 | 4 | `MatchCreate` schema | Added `status` field (default `"pending"`) so `create_match_lobby` can set `"filling"`. |
 | 5 | `CharacterCreate` schema | Added `match_id` and `entry_order` for `join_match` Character row creation. |
 | 6 | `create_with_characters` atomicity | Changed from `commit`+`refresh` to `flush` so `join_match` controls the transaction boundary. |
+| 7 | Auth for new endpoints | No auth — player identity via request body/path params, consistent with existing endpoints. Auth is Phase 3. |
+| 8 | `MatchEvent` schema/CRUD | Added `backend/app/schemas/match_event.py` and `backend/app/crud/match_event.py` for the events polling endpoint. |
+| 9 | `TaskScheduler` lifecycle | Started/stopped via FastAPI lifespan handler in `main.py`. Countdown scheduling and round delay were already wired in Steps 4–6. |
 
 ## Known Issues
 

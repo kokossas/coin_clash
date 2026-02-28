@@ -1,12 +1,24 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
 from .api.api_v1.api import api_router
+from core.scheduler.scheduler import TaskScheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    TaskScheduler.get_instance().start()
+    yield
+    TaskScheduler.get_instance().stop()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan,
 )
 
 # Set up CORS

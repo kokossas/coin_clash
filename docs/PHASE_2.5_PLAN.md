@@ -101,17 +101,17 @@
 
 | Endpoint | Method | Files | Status |
 |----------|--------|-------|--------|
-| `/api/v1/characters/purchase` | POST | `backend/app/api/api_v1/endpoints/characters.py` | ⬜ |
-| `/api/v1/characters/inventory` | GET | same | ⬜ |
-| `/api/v1/characters/{id}/revival-fee` | GET | same | ⬜ |
-| `/api/v1/characters/{id}/revive` | POST | same | ⬜ |
-| `/api/v1/matches/create` | POST | `backend/app/api/api_v1/endpoints/matches.py` | ⬜ |
-| `/api/v1/matches/open` | GET | same | ⬜ |
-| `/api/v1/matches/{id}/join` | POST | same | ⬜ |
-| `/api/v1/matches/{id}/events` | GET | same | ⬜ |
-| `/api/v1/matches/{id}/status` | GET | same | ⬜ |
-| `/api/v1/players/profile` | GET | `backend/app/api/api_v1/endpoints/players.py` | ⬜ |
-| `/api/v1/players/{address}/match-history` | GET | same | ⬜ |
+| `/api/v1/characters/purchase` | POST | `backend/app/api/api_v1/endpoints/characters.py` | ✅ Done |
+| `/api/v1/characters/inventory` | GET | same | ✅ Done |
+| `/api/v1/characters/{id}/revival-fee` | GET | same | ✅ Done |
+| `/api/v1/characters/{id}/revive` | POST | same | ✅ Done |
+| `/api/v1/matches/create` | POST | `backend/app/api/api_v1/endpoints/matches.py` | ✅ Done |
+| `/api/v1/matches/open` | GET | same | ✅ Done |
+| `/api/v1/matches/{id}/join` | POST | same | ✅ Done |
+| `/api/v1/matches/{id}/events` | GET | same | ✅ Done |
+| `/api/v1/matches/{id}/status` | GET | same | ✅ Done |
+| `/api/v1/players/profile` | GET | `backend/app/api/api_v1/endpoints/players.py` | ✅ Done |
+| `/api/v1/players/{address}/match-history` | GET | same | ✅ Done |
 
 ---
 
@@ -119,8 +119,9 @@
 
 | Task | Files | Status |
 |------|-------|--------|
-| Countdown expiry scheduling via `TaskScheduler` | `backend/app/services/match_lobby.py`, `core/scheduler/scheduler.py` | ⬜ |
-| Wire round delay into `match_runner` | `backend/app/services/match_runner.py` | ⬜ |
+| Countdown expiry scheduling via `TaskScheduler` | `backend/app/services/match_lobby.py`, `core/scheduler/scheduler.py` | ✅ Done |
+| Wire round delay into `match_runner` | `backend/app/services/match_runner.py` | ✅ Done |
+| Start/stop `TaskScheduler` on app lifespan | `backend/app/main.py` | ✅ Done |
 
 ---
 
