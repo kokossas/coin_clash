@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, Any
 from jose import jwt
 
@@ -29,7 +29,7 @@ class JWTAuthProvider(AuthProvider):
     async def generate_token(self, user_id: int) -> str:
         """Generate a JWT token for the user."""
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
         
         to_encode = {
             "sub": str(user_id),

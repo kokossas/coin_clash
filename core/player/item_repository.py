@@ -5,12 +5,15 @@ Item repository implementation for database operations related to items.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from abc import abstractmethod
+
 from ..common.repository import BaseRepo
 from backend.app.models.models import Item
 
 class ItemRepo(BaseRepo):
     """Repository interface for item operations."""
     
+    @abstractmethod
     def get_item_by_name(self, name: str) -> Optional[Item]:
         """
         Get an item by name.
@@ -23,6 +26,7 @@ class ItemRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def create_item(self, name: str, type: str, rarity: str, description: str = None, on_find: str = None, on_award: str = None) -> Item:
         """
         Create a new item.
@@ -40,6 +44,7 @@ class ItemRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def get_all_items(self) -> List[Item]:
         """
         Get all items.

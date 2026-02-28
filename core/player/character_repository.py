@@ -5,12 +5,15 @@ Character repository implementation for database operations related to character
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from abc import abstractmethod
+
 from ..common.repository import BaseRepo
 from backend.app.models.models import Character
 
 class CharacterRepo(BaseRepo):
     """Repository interface for character operations."""
     
+    @abstractmethod
     def create_character(self, name: str, player_id: int) -> Character:
         """
         Create a new character.
@@ -24,6 +27,7 @@ class CharacterRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def get_character_by_id(self, character_id: int) -> Optional[Character]:
         """
         Get a character by ID.
@@ -36,6 +40,7 @@ class CharacterRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def get_characters_by_player_id(self, player_id: int) -> List[Character]:
         """
         Get all characters owned by a player.
@@ -48,6 +53,7 @@ class CharacterRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def update_character_status(self, character_id: int, is_alive: bool) -> Optional[Character]:
         """
         Update a character's alive status.
@@ -61,6 +67,7 @@ class CharacterRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def assign_character_to_match(self, character_id: int, match_id: int) -> Optional[Character]:
         """
         Assign a character to a match.

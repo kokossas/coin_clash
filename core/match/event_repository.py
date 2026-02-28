@@ -5,12 +5,15 @@ Event repository implementation for database operations related to match events.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from abc import abstractmethod
+
 from ..common.repository import BaseRepo
 from backend.app.models.models import MatchEvent
 
 class EventRepo(BaseRepo):
     """Repository interface for match event operations."""
     
+    @abstractmethod
     def create_match_event(self, match_id: int, round_number: int, event_type: str, scenario_source: str, scenario_text: str, affected_character_ids: str) -> MatchEvent:
         """
         Create a new match event.
@@ -28,6 +31,7 @@ class EventRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def get_events_for_match(self, match_id: int) -> List[MatchEvent]:
         """
         Get all events for a match, ordered by timestamp.

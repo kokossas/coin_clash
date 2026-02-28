@@ -6,12 +6,15 @@ import datetime
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 
+from abc import abstractmethod
+
 from ..common.repository import BaseRepo
 from backend.app.models.models import Match, Character
 
 class MatchRepo(BaseRepo):
     """Repository interface for match operations."""
     
+    @abstractmethod
     def create_match(self, entry_fee: float, kill_award_rate: float, start_method: str, start_threshold: int, timer_duration: int = None) -> Match:
         """
         Create a new match.
@@ -28,6 +31,7 @@ class MatchRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def get_match_by_id(self, match_id: int) -> Optional[Match]:
         """
         Get a match by ID.
@@ -40,6 +44,7 @@ class MatchRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def update_match_status(self, match_id: int, status: str) -> Optional[Match]:
         """
         Update a match's status.
@@ -53,6 +58,7 @@ class MatchRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def set_match_start_time(self, match_id: int) -> Optional[Match]:
         """
         Set the start timestamp of a match to the current time.
@@ -65,6 +71,7 @@ class MatchRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def set_match_end_time(self, match_id: int) -> Optional[Match]:
         """
         Set the end timestamp of a match to the current time.
@@ -77,6 +84,7 @@ class MatchRepo(BaseRepo):
         """
         pass
 
+    @abstractmethod
     def set_match_winner(self, match_id: int, winner_character_id: int) -> Optional[Match]:
         """
         Set the winner of a match.
@@ -90,6 +98,7 @@ class MatchRepo(BaseRepo):
         """
         pass
         
+    @abstractmethod
     def set_start_timer_end(self, match_id: int, timer_duration: int) -> Optional[Match]:
         """
         Set the start timer end timestamp for a match.
@@ -103,6 +112,7 @@ class MatchRepo(BaseRepo):
         """
         pass
         
+    @abstractmethod
     def get_match_participant_counts(self, match_id: int) -> Tuple[int, int]:
         """
         Get the count of joined players and those who have purchased characters.

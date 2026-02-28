@@ -5,45 +5,59 @@ Player repository implementation for database operations related to players.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from abc import abstractmethod
+
 from ..common.repository import BaseRepo
 from backend.app.models.models import Player, PlayerItem
 
 class PlayerRepo(BaseRepo):
     """Repository interface for player operations."""
     
+    @abstractmethod
     def get_player_by_username(self, username: str) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def get_player_by_id(self, player_id: int) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def get_player_by_wallet_address(self, wallet_address: str) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def create_player(self, wallet_address: str, username: Optional[str] = None) -> Player:
         pass
 
+    @abstractmethod
     def update_player_balance(self, player_id: int, amount_change: float) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def add_win(self, player_id: int) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def add_kill(self, player_id: int) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def add_earnings(self, player_id: int, amount: float) -> Optional[Player]:
         pass
 
+    @abstractmethod
     def get_player_inventory(self, player_id: int) -> List[PlayerItem]:
         pass
 
+    @abstractmethod
     def add_item_to_inventory(self, player_id: int, item_id: int, quantity: int = 1) -> Optional[PlayerItem]:
         pass
         
+    @abstractmethod
     def get_or_create_player(self, wallet_address: str, username: Optional[str] = None) -> Player:
         pass
         
+    @abstractmethod
     def get_all_players(self, limit: int = 100) -> List[Player]:
         pass
 

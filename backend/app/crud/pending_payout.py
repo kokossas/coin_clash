@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from .base import CRUDBase
@@ -47,7 +47,7 @@ class CRUDPendingPayout(CRUDBase[PendingPayout, PendingPayoutCreate, PendingPayo
     ) -> Optional[PendingPayout]:
         obj = self.get(db, payout_id)
         if obj:
-            obj.settled_at = datetime.utcnow()
+            obj.settled_at = datetime.now(timezone.utc)
             obj.settlement_tx_hash = tx_hash
             db.add(obj)
             db.commit()
