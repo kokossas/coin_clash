@@ -9,7 +9,7 @@ backend/        FastAPI application — API, ORM models (single source of truth)
 core/           Game engine — match simulation, repositories, scheduler, config/scenario loading
 scenarios/      JSON event scenario files (direct_kill, environmental, group, self, story, comeback)
 old/            Archived pre-migration PoC. Not imported by anything. Kept as reference.
-config.yaml     Game configuration (event weights, fees, protocol cut, player limits)
+config.yaml     Game configuration (event weights, fees, player limits, round delays)
 docs/           PROJECT_STATUS.md (ground truth audit), PHASE_2.5_SPEC.md (next phase spec)
 ```
 
@@ -33,18 +33,20 @@ backend/app/services/
 
 **Next:** Phase 2.5 — character inventory, match lobbies, mock payments, round delays. See `docs/PHASE_2.5_SPEC.md`.
 
-**Known issues:** see `docs/PROJECT_STATUS.md` § "Known Broken Things"
+**Known issues:** see `docs/PROJECT_STATUS.md` § "Known Issues"
 
 ## Setup
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.12+
 - PostgreSQL 13+
 
 ### Install
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
@@ -73,11 +75,14 @@ API docs at `http://localhost:8000/docs`
 
 ### Tests
 
+Run from the project root with the venv activated (source .venv/bin/activate):
+
 ```bash
-pytest backend/tests/
+python -m pytest
 ```
 
-Note: some tests are currently broken (see `docs/PROJECT_STATUS.md`). Blockchain abstraction tests pass:
+This picks up both `backend/tests/` and `core/tests/` via `pyproject.toml` config. Or use the script:
+
 ```bash
-pytest backend/tests/services/blockchain/
+./run_tests.sh
 ```
