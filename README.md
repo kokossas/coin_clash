@@ -75,7 +75,7 @@ API docs at `http://localhost:8000/docs`
 
 ### Tests
 
-Run from the project root with the venv activated (source .venv/bin/activate):
+Run from the project root with the venv activated (`source .venv/bin/activate`):
 
 ```bash
 python -m pytest
