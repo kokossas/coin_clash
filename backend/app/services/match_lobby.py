@@ -44,7 +44,6 @@ class MatchLobbyService:
         min_players: int = 3,
         max_characters: int = 20,
         max_characters_per_player: int = 3,
-        protocol_fee_percentage: Decimal = Decimal("10.0"),
     ) -> Match:
         if not (3 <= min_players <= 50):
             raise ValueError("min_players must be between 3 and 50")
@@ -70,7 +69,6 @@ class MatchLobbyService:
             min_players=min_players,
             max_characters=max_characters,
             max_characters_per_player=max_characters_per_player,
-            protocol_fee_percentage=protocol_fee_percentage,
         )
         match = crud_match.create(db, obj_in=match_in)
         return match
@@ -135,6 +133,13 @@ class MatchLobbyService:
 
             entry_fee_total = len(owned_character_ids) * match.entry_fee
 
+            # Tiered protocol fee: rate depends on number of characters entered
+            fee_tiers = self._config["protocol_fee_tiers"]
+            char_count = len(owned_character_ids)
+            tier_key = min(char_count, max(fee_tiers.keys()))
+            protocol_rate = fee_tiers[tier_key] / 100.0
+            protocol_fee = entry_fee_total * protocol_rate
+
             await self._payment.process_deposit(
                 wallet_address=payment_ref,
                 amount=entry_fee_total,
@@ -146,6 +151,7 @@ class MatchLobbyService:
                 match_id=match_id,
                 player_id=player_id,
                 entry_fee_total=entry_fee_total,
+                protocol_fee=protocol_fee,
                 owned_character_ids=owned_character_ids,
             )
 
@@ -237,7 +243,11 @@ class MatchLobbyService:
             return []
 
         total_pool = len(match_characters) * match.entry_fee
-        protocol_fee = total_pool * (float(match.protocol_fee_percentage) / 100.0)
+
+        # Sum per-join protocol fees stored at join time (tiered rates)
+        confirmed_joins = crud_match_join_request.get_confirmed_by_match(db, match_id)
+        protocol_fee = sum(float(jr.protocol_fee) for jr in confirmed_joins)
+
         pool_after_protocol = total_pool - protocol_fee
 
         # Build per-player kill counts from MatchEvent

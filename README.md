@@ -23,7 +23,8 @@ backend/app/services/
                   Error hierarchy + async retry with exponential backoff.
   character_inventory.py  Purchase, inventory, revive owned characters
   match_lobby.py          Create lobby, join match, check start conditions, payout calculation
-  match_runner.py         Wires core/ repos and drives MatchEngine
+  match_runner.py         Wires core/ repos and drives MatchEngine, triggers settlement
+  settlement.py           Settle pending payouts via PaymentProvider (auto + manual)
 ```
 
 ## Current State
@@ -33,6 +34,7 @@ backend/app/services/
 - Phase 2: Blockchain abstraction layer (all 4 interfaces + mocks + tests + retry + factory)
 - Pre-Phase 2.5 cleanup: player identity migration (wallet_address canonical), model consolidation, engine wiring
 - Phase 2.5 Steps 0–8: tech debt, DB models, schemas/CRUD, CharacterInventoryService, MatchLobbyService, payout calculation, engine changes, API endpoints, background tasks
+- Game economy completion: tiered protocol fees (per-join, from config.yaml), SettlementService (auto + manual), match results endpoint
 
 **Next:** Phase 3 — Auth / wallet signature verification. See `docs/PROJECT_STATUS.md`.
 

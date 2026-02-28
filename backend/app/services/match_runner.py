@@ -50,3 +50,12 @@ def run_match_background(match_id: int, db: Session) -> None:
 
     from backend.app.services.match_lobby import MatchLobbyService
     MatchLobbyService().calculate_and_store_payouts(db, match_id)
+
+    import asyncio
+    from backend.app.services.settlement import SettlementService
+    try:
+        asyncio.get_event_loop().run_until_complete(
+            SettlementService().settle_match(db, match_id)
+        )
+    except Exception:
+        logger.exception("Auto-settlement failed for match %d; payouts remain unsettled", match_id)

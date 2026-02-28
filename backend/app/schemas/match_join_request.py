@@ -8,6 +8,7 @@ class MatchJoinRequestBase(BaseModel):
     match_id: int
     player_id: int
     entry_fee_total: Decimal
+    protocol_fee: Decimal
 
 
 class MatchJoinRequestCreate(MatchJoinRequestBase):

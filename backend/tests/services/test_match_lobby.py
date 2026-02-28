@@ -1,5 +1,4 @@
 import pytest
-from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -46,6 +45,7 @@ MOCK_CONFIG = {
     "listing_fee": 0.1,
     "character_base_price": 1.0,
     "character_revival_fee": 0.5,
+    "protocol_fee_tiers": {1: 10.0, 2: 8.0, 3: 6.0},
 }
 
 
@@ -103,7 +103,6 @@ def _make_filling_match(db_session, **overrides):
         min_players=3,
         max_characters=20,
         max_characters_per_player=3,
-        protocol_fee_percentage=Decimal("10.0"),
         creator_wallet_address="0xcreator",
     )
     defaults.update(overrides)
@@ -400,35 +399,56 @@ class TestCalculateAndStorePayouts:
 
     def _setup_match_with_characters(self, db_session, num_chars_per_player, players,
                                      entry_fee=1.0, kill_award_rate=0.1,
-                                     protocol_fee_pct="10.0",
+                                     protocol_fee_pcts=None,
                                      winner_character_id=None):
+        """Create match, characters, and confirmed join requests with protocol fees.
+
+        protocol_fee_pcts: list of per-player protocol fee percentages.
+        If None, uses 10% for all players (single-char default).
+        """
         match = Match(
             entry_fee=entry_fee,
             kill_award_rate=kill_award_rate,
             start_method="cap",
             start_threshold=60,
             status="completed",
-            protocol_fee_percentage=Decimal(protocol_fee_pct),
             winner_character_id=winner_character_id,
         )
         db_session.add(match)
         db_session.commit()
         db_session.refresh(match)
 
+        if protocol_fee_pcts is None:
+            protocol_fee_pcts = [10.0] * len(players)
+
         chars = []
         order = 1
-        for player, count in zip(players, num_chars_per_player):
+        for idx, (player_obj, count) in enumerate(zip(players, num_chars_per_player)):
+            player_chars = []
             for j in range(count):
                 c = Character(
                     name=f"C{order}",
-                    player_id=player.id,
+                    player_id=player_obj.id,
                     match_id=match.id,
                     entry_order=order,
                 )
                 db_session.add(c)
                 db_session.flush()
                 chars.append(c)
+                player_chars.append(c)
                 order += 1
+
+            fee_total = count * entry_fee
+            protocol_fee = fee_total * (protocol_fee_pcts[idx] / 100.0)
+            jr = MatchJoinRequest(
+                match_id=match.id,
+                player_id=player_obj.id,
+                entry_fee_total=fee_total,
+                protocol_fee=protocol_fee,
+                payment_status="confirmed",
+            )
+            db_session.add(jr)
+
         db_session.commit()
         return match, chars
 
@@ -444,7 +464,7 @@ class TestCalculateAndStorePayouts:
             players=[player, player2, p3, p4],
             entry_fee=1.0,
             kill_award_rate=0.1,
-            protocol_fee_pct="10.0",
+            protocol_fee_pcts=[10.0, 10.0, 10.0, 10.0],
         )
         # Set winner
         match.winner_character_id = chars[0].id
@@ -522,7 +542,7 @@ class TestCalculateAndStorePayouts:
             players=[player, player2],
             entry_fee=1.0,
             kill_award_rate=0.5,
-            protocol_fee_pct="50.0",
+            protocol_fee_pcts=[50.0, 50.0],
         )
         # total_pool=10, protocol_fee=5, pool_after_protocol=5
         # Each player kills 5 of the other's chars → raw award = 5*1.0*0.5 = 2.5 each
@@ -564,7 +584,6 @@ class TestCalculateAndStorePayouts:
             start_method="cap",
             start_threshold=60,
             status="completed",
-            protocol_fee_percentage=Decimal("10.0"),
         )
         db_session.add(match)
         db_session.commit()

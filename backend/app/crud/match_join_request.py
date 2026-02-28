@@ -44,12 +44,14 @@ class CRUDMatchJoinRequest(CRUDBase[MatchJoinRequest, MatchJoinRequestCreate, Ma
         match_id: int,
         player_id: int,
         entry_fee_total: float,
+        protocol_fee: float,
         owned_character_ids: List[int],
     ) -> MatchJoinRequest:
         join_request = MatchJoinRequest(
             match_id=match_id,
             player_id=player_id,
             entry_fee_total=entry_fee_total,
+            protocol_fee=protocol_fee,
         )
         db.add(join_request)
         db.flush()  # get id before creating junction rows

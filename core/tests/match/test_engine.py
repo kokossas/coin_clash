@@ -9,13 +9,12 @@ from core.match.engine import MatchEngine
 
 
 class StubMatch:
-    def __init__(self, match_id=1, entry_fee=1.0, kill_award_rate=0.1, protocol_fee_percentage=10.0):
+    def __init__(self, match_id=1, entry_fee=1.0, kill_award_rate=0.1):
         self.id = match_id
         self.entry_fee = entry_fee
         self.kill_award_rate = kill_award_rate
         self.status = "pending"
         self.winner_character_id = None
-        self.protocol_fee_percentage = protocol_fee_percentage
 
 
 class StubPlayer:

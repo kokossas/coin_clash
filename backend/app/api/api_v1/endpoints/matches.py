@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,12 +7,15 @@ from sqlalchemy.orm import Session
 
 from ....crud.match import crud_match
 from ....crud.match_event import crud_match_event
+from ....crud.pending_payout import crud_pending_payout
 from ....db.session import get_db_dependency
-from ....models.models import Character, Match
+from ....models.models import Character, Match, MatchEvent as MatchEventModel
 from ....schemas.match import Match as MatchSchema, MatchCreate, MatchUpdate
 from ....schemas.match_event import MatchEvent as MatchEventSchema
 from ....schemas.match_join_request import MatchJoinRequest as MatchJoinRequestSchema
+from ....schemas.pending_payout import PendingPayout as PendingPayoutSchema
 from ....services.match_lobby import MatchLobbyService
+from ....services.settlement import SettlementService
 
 router = APIRouter()
 
@@ -27,7 +29,6 @@ class CreateLobbyRequest(BaseModel):
     min_players: int = 3
     max_characters: int = 20
     max_characters_per_player: int = 3
-    protocol_fee_percentage: Decimal = Decimal("10.0")
 
 
 class JoinMatchRequest(BaseModel):
@@ -48,6 +49,20 @@ class MatchStatusResponse(BaseModel):
     winner_character_id: Optional[int] = None
 
 
+class PlayerResultEntry(BaseModel):
+    player_id: int
+    kills: int
+    payouts: List[PendingPayoutSchema]
+
+
+class MatchResultsResponse(BaseModel):
+    match_id: int
+    status: str
+    winner_player_id: Optional[int] = None
+    winner_character_id: Optional[int] = None
+    players: List[PlayerResultEntry]
+
+
 @router.post("/create", response_model=MatchSchema)
 async def create_match_lobby(
     body: CreateLobbyRequest,
@@ -65,7 +80,6 @@ async def create_match_lobby(
             min_players=body.min_players,
             max_characters=body.max_characters,
             max_characters_per_player=body.max_characters_per_player,
-            protocol_fee_percentage=body.protocol_fee_percentage,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -162,6 +176,81 @@ def get_match_status(
             else None
         ),
         winner_character_id=match.winner_character_id,
+    )
+
+
+@router.post("/{match_id}/settle", response_model=List[PendingPayoutSchema])
+async def settle_match(
+    match_id: int,
+    db: Session = Depends(get_db_dependency),
+):
+    match = crud_match.get(db, id=match_id)
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status != "completed":
+        raise HTTPException(status_code=400, detail="Match is not completed")
+    service = SettlementService()
+    return await service.settle_match(db, match_id)
+
+
+@router.get("/{match_id}/results", response_model=MatchResultsResponse)
+def get_match_results(
+    match_id: int,
+    db: Session = Depends(get_db_dependency),
+):
+    match = crud_match.get(db, id=match_id)
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status not in ("completed", "failed"):
+        raise HTTPException(status_code=400, detail="Match has not ended")
+
+    characters = (
+        db.query(Character).filter(Character.match_id == match_id).all()
+    )
+    char_to_player = {c.id: c.player_id for c in characters}
+    player_ids = {c.player_id for c in characters}
+
+    kill_events = (
+        db.query(MatchEventModel)
+        .filter(
+            MatchEventModel.match_id == match_id,
+            MatchEventModel.event_type == "direct_kill",
+        )
+        .all()
+    )
+    kills_per_player: dict[int, int] = {pid: 0 for pid in player_ids}
+    for event in kill_events:
+        if not event.affected_character_ids:
+            continue
+        killer_char_id = int(event.affected_character_ids.split(",")[0].strip())
+        killer_player_id = char_to_player.get(killer_char_id)
+        if killer_player_id is not None:
+            kills_per_player[killer_player_id] = kills_per_player.get(killer_player_id, 0) + 1
+
+    payouts = crud_pending_payout.get_by_match_id(db, match_id)
+    payouts_by_player: dict[int, list] = {pid: [] for pid in player_ids}
+    for p in payouts:
+        payouts_by_player.setdefault(p.player_id, []).append(p)
+
+    winner_player_id = None
+    if match.winner_character_id is not None:
+        winner_player_id = char_to_player.get(match.winner_character_id)
+
+    players = [
+        PlayerResultEntry(
+            player_id=pid,
+            kills=kills_per_player.get(pid, 0),
+            payouts=payouts_by_player.get(pid, []),
+        )
+        for pid in player_ids
+    ]
+
+    return MatchResultsResponse(
+        match_id=match.id,
+        status=match.status,
+        winner_player_id=winner_player_id,
+        winner_character_id=match.winner_character_id,
+        players=players,
     )
 
 

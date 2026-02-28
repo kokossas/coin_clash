@@ -67,7 +67,6 @@ class Match(Base, BaseModel):
     min_players = Column(Integer, default=3)
     max_characters = Column(Integer, default=20)
     max_characters_per_player = Column(Integer, default=3)
-    protocol_fee_percentage = Column(Numeric(5, 2), default=10.0)
     countdown_started_at = Column(DateTime(timezone=True), nullable=True)
 
     participants = relationship("Character", foreign_keys="Character.match_id", back_populates="match")
@@ -168,6 +167,9 @@ class MatchJoinRequest(Base, BaseModel):
         Index("ix_match_join_requests_match_player", "match_id", "player_id"),
         Index("ix_match_join_requests_payment_status", "payment_status"),
     )
+
+    # Per-join protocol fee derived from tiered rates at join time
+    protocol_fee = Column(Numeric(10, 2), nullable=False, default=0)
 
     match = relationship("Match", back_populates="join_requests")
     player = relationship("Player")

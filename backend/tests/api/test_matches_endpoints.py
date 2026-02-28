@@ -39,7 +39,6 @@ def _make_match(db, **overrides):
         min_players=3,
         max_characters=20,
         max_characters_per_player=3,
-        protocol_fee_percentage=Decimal("10.0"),
         creator_wallet_address="0xcreator",
     )
     defaults.update(overrides)
@@ -89,7 +88,6 @@ class TestCreateLobby:
         mock_match.min_players = 3
         mock_match.max_characters = 20
         mock_match.max_characters_per_player = 3
-        mock_match.protocol_fee_percentage = Decimal("10.0")
         mock_match.start_timestamp = None
         mock_match.end_timestamp = None
         mock_match.winner_character_id = None
@@ -189,6 +187,7 @@ class TestJoinMatch:
         mock_jr.match_id = 10
         mock_jr.player_id = 1
         mock_jr.entry_fee_total = Decimal("2.0")
+        mock_jr.protocol_fee = Decimal("0.16")
         mock_jr.payment_status = "confirmed"
         mock_jr.created_at = "2025-01-01T00:00:00"
         mock_jr.confirmed_at = "2025-01-01T00:00:01"

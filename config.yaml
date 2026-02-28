@@ -50,6 +50,12 @@ lethal_modifiers:
 character_base_price: 1.0
 character_revival_fee: 0.5
 listing_fee: 0.1
+
+# Protocol fee tiers — percentage taken from entry fees based on characters entered
+protocol_fee_tiers:
+  1: 10.0
+  2: 8.0
+  3: 6.0
 round_delay_enabled: false
 round_delay_min: 5.0
 round_delay_max: 10.0

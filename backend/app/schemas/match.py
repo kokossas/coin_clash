@@ -1,7 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
-from decimal import Decimal
 
 class MatchBase(BaseModel):
     entry_fee: float
@@ -15,7 +14,6 @@ class MatchCreate(MatchBase):
     min_players: int = 3
     max_characters: int = 20
     max_characters_per_player: int = 3
-    protocol_fee_percentage: Decimal = Decimal("10.0")
 
 class MatchUpdate(BaseModel):
     entry_fee: Optional[float] = None
@@ -33,7 +31,6 @@ class MatchUpdate(BaseModel):
     min_players: Optional[int] = None
     max_characters: Optional[int] = None
     max_characters_per_player: Optional[int] = None
-    protocol_fee_percentage: Optional[Decimal] = None
     countdown_started_at: Optional[datetime] = None
 
 class MatchInDBBase(MatchBase):
@@ -50,7 +47,6 @@ class MatchInDBBase(MatchBase):
     min_players: int = 3
     max_characters: int = 20
     max_characters_per_player: int = 3
-    protocol_fee_percentage: Decimal = Decimal("10.0")
     countdown_started_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
