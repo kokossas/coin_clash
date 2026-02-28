@@ -3,7 +3,6 @@
 from typing import Dict, List, Optional
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from core.config.game_config import GameConfig
 from core.match.engine import MatchEngine

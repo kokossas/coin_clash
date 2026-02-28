@@ -1,7 +1,7 @@
 import datetime
 import logging
 from decimal import Decimal
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -15,7 +15,6 @@ from backend.app.models.models import (
     Match,
     MatchEvent,
     MatchJoinRequest,
-    OwnedCharacter,
     PendingPayout,
 )
 from backend.app.schemas.match import MatchCreate

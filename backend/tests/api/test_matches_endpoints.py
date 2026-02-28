@@ -20,7 +20,8 @@ def _db():
 
 
 def _make_player(db, wallet=None):
-    import random, string
+    import random
+    import string
     wallet = wallet or f"0x{''.join(random.choices(string.hexdigits, k=40))}"
     p = Player(wallet_address=wallet, username=f"u_{''.join(random.choices(string.ascii_lowercase, k=6))}", balance=0.0)
     db.add(p)

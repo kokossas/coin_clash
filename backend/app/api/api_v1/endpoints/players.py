@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ....crud.match import crud_match
 from ....crud.pending_payout import crud_pending_payout
 from ....crud.player import crud_player
 from ....db.session import get_db_dependency

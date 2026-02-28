@@ -154,6 +154,16 @@ class TestCreateMatchLobby:
                 start_threshold=60,
                 min_players=2,
             )
+        with pytest.raises(ValueError, match="min_players"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=1.0,
+                kill_award_rate=0.1,
+                start_method="cap",
+                start_threshold=60,
+                min_players=51,
+            )
 
     @pytest.mark.asyncio
     async def test_rejects_entry_fee_out_of_range(self, service, db_session):
@@ -223,6 +233,49 @@ class TestCreateMatchLobby:
                 min_players=5,
                 max_characters=4,
             )
+
+    @pytest.mark.asyncio
+    async def test_rejects_max_characters_above_100(self, service, db_session):
+        with pytest.raises(ValueError, match="max_characters"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=1.0,
+                kill_award_rate=0.1,
+                start_method="cap",
+                start_threshold=60,
+                max_characters=101,
+            )
+
+    @pytest.mark.asyncio
+    async def test_accepts_boundary_values(self, service, db_session):
+        match = await service.create_match_lobby(
+            db_session,
+            creator_wallet_address="0xcreator",
+            entry_fee=0.5,
+            kill_award_rate=0.0,
+            start_method="cap",
+            start_threshold=60,
+            min_players=3,
+            max_characters=20,
+            max_characters_per_player=1,
+        )
+        assert match.entry_fee == 0.5
+        assert match.max_characters_per_player == 1
+
+        match2 = await service.create_match_lobby(
+            db_session,
+            creator_wallet_address="0xcreator",
+            entry_fee=5.0,
+            kill_award_rate=0.5,
+            start_method="cap",
+            start_threshold=60,
+            min_players=50,
+            max_characters=100,
+            max_characters_per_player=3,
+        )
+        assert match2.entry_fee == 5.0
+        assert match2.min_players == 50
 
     @pytest.mark.asyncio
     async def test_deducts_listing_fee(self, service, mock_payment, db_session):
