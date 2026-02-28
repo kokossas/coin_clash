@@ -210,9 +210,7 @@ class MatchEngine:
             "event_type":  event_type
             }
         )
-        is_lethal = event_type in ["direct_kill", "self", "environmental", "group", "extra_lethal"]
         is_comeback = event_type == "comeback"
-        is_story = event_type in ["story", "non_lethal_story"]
 
         # --- Determine Scenario Category --- 
         category_source = EVENT_TYPE_TO_CATEGORY.get(event_type)
@@ -411,7 +409,8 @@ class MatchEngine:
             extra={"match_id": self.match_id, "round": self.round_number}
             )
             self._process_event("non_lethal_story")
-            if len(self.alive_pool) <= 1: return
+            if len(self.alive_pool) <= 1:
+                return
 
         # 2b. Extra Lethal
         if not two_remain: # Cannot occur if only 2 remain
@@ -427,7 +426,8 @@ class MatchEngine:
                 extra={"match_id": self.match_id, "round": self.round_number}
                 )
                 self._process_event("extra_lethal")
-                if len(self.alive_pool) <= 1: return
+                if len(self.alive_pool) <= 1:
+                    return
 
         # 2c. Comeback
         if self.dead_pool: # Cannot occur if dead pool is empty

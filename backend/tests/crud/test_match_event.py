@@ -66,7 +66,7 @@ def test_get_by_match_id_respects_limit(db_session):
 
 def test_get_by_match_id_returns_ordered_by_id(db_session):
     match = _make_match(db_session)
-    events = [_make_event(db_session, match.id, round_number=i) for i in range(4)]
+    _ = [_make_event(db_session, match.id, round_number=i) for i in range(4)]
 
     result = crud_match_event.get_by_match_id(db_session, match.id)
     ids = [e.id for e in result]
