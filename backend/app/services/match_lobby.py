@@ -50,12 +50,25 @@ class MatchLobbyService:
         max_characters: int = 20,
         max_characters_per_player: int = 3,
     ) -> Match:
-        if not (3 <= min_players <= 50):
-            raise ValueError("min_players must be between 3 and 50")
+        cfg = self._config
+        if not (cfg.min_fee <= entry_fee <= cfg.max_fee):
+            raise ValueError(
+                f"entry_fee must be between {cfg.min_fee} and {cfg.max_fee}"
+            )
+        if not (cfg.kill_award_rate_min <= kill_award_rate <= cfg.kill_award_rate_max):
+            raise ValueError(
+                f"kill_award_rate must be between {cfg.kill_award_rate_min} and {cfg.kill_award_rate_max}"
+            )
+        if not (cfg.num_players_min <= min_players <= cfg.num_players_max):
+            raise ValueError(
+                f"min_players must be between {cfg.num_players_min} and {cfg.num_players_max}"
+            )
         if max_characters < min_players or max_characters > 100:
             raise ValueError("max_characters must be >= min_players and <= 100")
-        if not (1 <= max_characters_per_player <= 5):
-            raise ValueError("max_characters_per_player must be between 1 and 5")
+        if not (cfg.chars_per_player_min <= max_characters_per_player <= cfg.chars_per_player_max):
+            raise ValueError(
+                f"max_characters_per_player must be between {cfg.chars_per_player_min} and {cfg.chars_per_player_max}"
+            )
 
         listing_fee = self._config.listing_fee
         await self._payment.process_deposit(

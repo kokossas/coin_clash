@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from core.config.game_config import GameConfig
 from core.match.engine import MatchEngine
 
 
@@ -132,24 +133,40 @@ class StubItemRepo:
     pass
 
 
-MINIMAL_CONFIG = {
-    "primary_event_weights": {
+MINIMAL_CONFIG = GameConfig(
+    scenario_dir="scenarios",
+    min_fee=0.5,
+    default_fee=1.0,
+    max_fee=5.0,
+    kill_award_rate_min=0.0,
+    kill_award_rate_default=0.1,
+    kill_award_rate_max=0.5,
+    num_players_min=3,
+    num_players_default=4,
+    num_players_max=50,
+    chars_per_player_min=1,
+    chars_per_player_max=3,
+    primary_event_weights={
         "direct_kill": 50,
         "self": 15,
         "environmental": 20,
         "group": 5,
         "story": 10,
     },
-    "extra_events": {
+    extra_events={
         "non_lethal_story_chance": 0.0,
         "extra_lethal_base_chance": 0.0,
         "comeback_base_chance": 0.0,
     },
-    "lethal_modifiers": {"cap_8_plus": 0.10, "cap_12_plus": 0.20},
-    "round_delay_enabled": False,
-    "round_delay_min": 0.01,
-    "round_delay_max": 0.02,
-}
+    lethal_modifiers={"cap_8_plus": 0.10, "cap_12_plus": 0.20},
+    character_base_price=1.0,
+    character_revival_fee=0.5,
+    listing_fee=0.1,
+    protocol_fee_tiers={1: 10.0, 2: 8.0, 3: 6.0},
+    round_delay_enabled=False,
+    round_delay_min=0.01,
+    round_delay_max=0.02,
+)
 
 MINIMAL_SCENARIOS = {
     "direct_kill": [{"text": "[Character A] eliminates [Character B].", "id": "dk_000"}],
@@ -183,7 +200,7 @@ def _make_engine(
     character_repo=None,
 ):
     m = match or StubMatch()
-    cfg = config or MINIMAL_CONFIG.copy()
+    cfg = config or MINIMAL_CONFIG
     scn = scenarios or MINIMAL_SCENARIOS
     pr = StubPlayerRepo(players)
     cr = character_repo or StubCharacterRepo(chars)
@@ -303,10 +320,7 @@ class TestRoundDelay:
     @patch("core.match.engine.time.sleep")
     def test_delay_called_when_enabled(self, mock_sleep):
         players, chars = _make_players_and_chars(2)
-        cfg = MINIMAL_CONFIG.copy()
-        cfg["round_delay_enabled"] = True
-        cfg["round_delay_min"] = 0.01
-        cfg["round_delay_max"] = 0.02
+        cfg = MINIMAL_CONFIG.model_copy(update={"round_delay_enabled": True})
         engine = _make_engine(players, chars, config=cfg, seed=42)
 
         engine.run_match(chars)
@@ -319,8 +333,7 @@ class TestRoundDelay:
     @patch("core.match.engine.time.sleep")
     def test_no_delay_when_disabled(self, mock_sleep):
         players, chars = _make_players_and_chars(2)
-        cfg = MINIMAL_CONFIG.copy()
-        cfg["round_delay_enabled"] = False
+        cfg = MINIMAL_CONFIG.model_copy(update={"round_delay_enabled": False})
         engine = _make_engine(players, chars, config=cfg, seed=42)
 
         engine.run_match(chars)

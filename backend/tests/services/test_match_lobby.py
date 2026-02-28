@@ -46,6 +46,14 @@ MOCK_CONFIG = MagicMock(
     character_base_price=1.0,
     character_revival_fee=0.5,
     protocol_fee_tiers={1: 10.0, 2: 8.0, 3: 6.0},
+    min_fee=0.5,
+    max_fee=5.0,
+    kill_award_rate_min=0.0,
+    kill_award_rate_max=0.5,
+    num_players_min=3,
+    num_players_max=50,
+    chars_per_player_min=1,
+    chars_per_player_max=3,
 )
 
 
@@ -145,6 +153,61 @@ class TestCreateMatchLobby:
                 start_method="cap",
                 start_threshold=60,
                 min_players=2,
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_entry_fee_out_of_range(self, service, db_session):
+        with pytest.raises(ValueError, match="entry_fee"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=0.1,
+                kill_award_rate=0.1,
+                start_method="cap",
+                start_threshold=60,
+            )
+        with pytest.raises(ValueError, match="entry_fee"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=10.0,
+                kill_award_rate=0.1,
+                start_method="cap",
+                start_threshold=60,
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_kill_award_rate_out_of_range(self, service, db_session):
+        with pytest.raises(ValueError, match="kill_award_rate"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=1.0,
+                kill_award_rate=-0.1,
+                start_method="cap",
+                start_threshold=60,
+            )
+        with pytest.raises(ValueError, match="kill_award_rate"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=1.0,
+                kill_award_rate=0.6,
+                start_method="cap",
+                start_threshold=60,
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_max_characters_per_player_out_of_range(self, service, db_session):
+        with pytest.raises(ValueError, match="max_characters_per_player"):
+            await service.create_match_lobby(
+                db_session,
+                creator_wallet_address="0xcreator",
+                entry_fee=1.0,
+                kill_award_rate=0.1,
+                start_method="cap",
+                start_threshold=60,
+                max_characters_per_player=5,
             )
 
     @pytest.mark.asyncio
