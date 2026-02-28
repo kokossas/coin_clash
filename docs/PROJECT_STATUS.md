@@ -1,6 +1,6 @@
 # Project Status — Ground Truth Audit
 
-Last updated: 2026-02-27
+Last updated: 2026-02-28
 
 ---
 
@@ -13,21 +13,20 @@ core/         Adapted game engine. Match simulation, repos, scheduler, config lo
 backend/      FastAPI application. Single source of truth for ORM models, schemas, CRUD, API, services.
               Imports core/ for match execution (via backend/app/services/match_runner.py).
 scenarios/    JSON scenario files consumed by core/match/scenario_loader.py.
-config.yaml   Game config (event weights, fees, protocol cut). Also contains legacy SQLite URL (see tech debt).
+config.yaml   Game config (event weights, fees, player limits, round delays, character pricing).
 ```
 
 ## Database
 
 - **Production target**: PostgreSQL (configured in `backend/app/core/config.py` via env vars)
 - **Tests**: In-memory SQLite (`backend/tests/conftest.py`)
-- **Legacy**: `config.yaml` contains `database_url: "sqlite:///data/coin_clash.db"` — used only by `core/config/config_loader.py`, which requires it as a key. Not used by backend.
 - **Migrations**: `alembic` is in `requirements.txt` but never configured. No `alembic/` directory exists.
 
 ## ORM Models (`backend/app/models/models.py`)
 
 | Model | Key Fields |
 |-------|-----------|
-| Player | id (PK), wallet_address (unique, non-null), username (nullable), balance, wins, kills, total_sui_earned, wallet_chain_id |
+| Player | id (PK), wallet_address (unique, non-null), username (nullable), balance, wins, kills, total_earnings, wallet_chain_id |
 | Character | id (PK), name, player_id (FK→players.id), match_id (FK→matches.id, nullable), is_alive, owned_character_id (FK→owned_characters.id), entry_order, elimination_round |
 | Match | id (PK), entry_fee, kill_award_rate, start_method, start_threshold, start_timer_end, start_timestamp, end_timestamp, winner_character_id, status, blockchain_tx_id, blockchain_settlement_status, creator_wallet_address, min_players, max_characters, max_characters_per_player, protocol_fee_percentage, countdown_started_at |
 | MatchEvent | id (PK), match_id, round_number, event_type, scenario_source, scenario_text, affected_character_ids |
@@ -75,15 +74,13 @@ All 6 steps from `docs/pre_phase_2.5_cleanup.md` are done in production code:
 - Consolidating config systems is an architectural decision outside Phase 2.5 scope.
 
 ### SUI naming throughout codebase
-- `Player.total_sui_earned` column, `add_sui_earned()` repo method, schema fields, engine calls — all reference "SUI" but project uses USDC.
-- Test fixtures also hardcode `currency="SUI"`.
-- Pending rename to `total_earnings` / `add_earnings`.
+- Rename done: `total_earnings` / `add_earnings` in model + repo, `currency="USDC"` in tests.
+- One stale `# TODO: Implement actual SUI transfer/logging` comment remains in `core/match/engine.py` `run_match`.
+- Docstring examples in `backend/app/services/blockchain/payment/base.py` and `transaction/base.py` still mention "SUI" as an example currency code — cosmetic only.
 
 ### Engine payout issues
-- `_handle_direct_kill` pays kill awards immediately via `add_sui_earned`. `_calculate_payouts` re-estimates them at match end. Double-counting.
-- `_calculate_payouts` reads `config["protocol_cut"]["1"]` (tiered YAML config) instead of `Match.protocol_fee_percentage` (per-match column defined in Phase 2.5 spec).
+- `_handle_direct_kill` pays kill awards immediately via `add_earnings`. `_calculate_payouts` re-estimates them as `num_deaths × entry_fee × kill_award_rate` rather than tracking actual awards paid. If any kill award was skipped (no killer found) or rates changed, the estimate diverges from reality.
+- `_calculate_payouts` now correctly reads `self.match.protocol_fee_percentage` (fixed in `496bea9`).
 
 ### Minor issues
-- `core/match/event_repository.py`: `.order_by(MatchEvent.timestamp)` — column doesn't exist, should be `.created_at`.
-- `core/player/character_repository.py`: `character.is_alive = 1 if is_alive else 0` — sets int on Boolean column.
-- `backend/app/schemas/match_join_request.py`, `pending_payout.py`: use Pydantic v1 `orm_mode = True` while all other schemas use v2 `ConfigDict(from_attributes=True)`.
+- None currently tracked. Previous items (EventRepo sort column, character_repository bool assignment, Pydantic v1 orm_mode in new schemas) all fixed in `496bea9` / `13d1f39`.
