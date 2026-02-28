@@ -44,19 +44,19 @@ backend/app/services/
 
 **Known issues:** see `docs/PROJECT_STATUS.md` § "Known Issues"
 
-## Simulator
+## Scripts
 
-Run a full match simulation without a database:
+Development and testing utilities. See [`scripts/README.md`](scripts/README.md) for details.
+
+**Quick start:**
 
 ```bash
-# Uniform: 6 players, 2 chars each
-python scripts/simulate_match.py --players 6 --chars-per-player 2 --entry-fee 1.0 --seed 42
+# Run a match simulation
+python scripts/simulate_match.py --players 6 --chars-per-player 2 --seed 42
 
-# Mixed distribution: 4 players with 3, 1, 2, 1 chars respectively
-python scripts/simulate_match.py --char-distribution 3,1,2,1 --entry-fee 1.0 --seed 7
+# Run batch tests (24 scenarios with economic validation)
+python scripts/batch_simulate.py
 ```
-
-Outputs round-by-round match log and economic summary (pool, protocol fees, kill awards, winner payout). Uses real scenarios from `scenarios/` and config from `config.yaml`. `--char-distribution` overrides `--players` and `--chars-per-player`.
 
 ## Setup
 
